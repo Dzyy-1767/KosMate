@@ -24,8 +24,16 @@ export async function getNeedById(id: string): Promise<Need | null> {
 export async function createNeed(input: CreateNeedInput): Promise<Need> {
   const needs = await getAllNeeds();
   const now = new Date().toISOString();
+  const isPurchased = input.isPurchased ?? false;
+
   const newNeed: Need = {
+    category: input.category ?? 'Lainnya',
+    price: input.price ?? input.estimatedPrice ?? 0,
+    priority: input.priority ?? 'Sedang',
+    targetDate: input.targetDate ?? now.split('T')[0],
     ...input,
+    purchased: isPurchased,
+    isPurchased,
     id: generateId(),
     createdAt: now,
     updatedAt: now,
@@ -45,6 +53,8 @@ export async function updateNeed(
   const updated: Need = {
     ...needs[index],
     ...input,
+    purchased: input.purchased ?? input.isPurchased ?? needs[index].purchased,
+    isPurchased: input.isPurchased ?? input.purchased ?? needs[index].isPurchased,
     updatedAt: new Date().toISOString(),
   };
   needs[index] = updated;

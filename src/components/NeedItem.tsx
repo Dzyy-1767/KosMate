@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import type { Need } from '../types/need';
 
 interface NeedItemProps {
@@ -9,7 +9,7 @@ interface NeedItemProps {
 export function NeedItem({ need, onPress }: NeedItemProps) {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Text>{need.title}</Text>
+      <Text>{need.name ?? need.title}</Text>
     </TouchableOpacity>
   );
 }

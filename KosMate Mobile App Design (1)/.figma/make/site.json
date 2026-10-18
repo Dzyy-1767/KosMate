@@ -1,0 +1,10 @@
+{
+  "description": "Manage personal finances and shopping effortlessly with this app designed for Indonesian students and young professionals, offering budget tracking and expense insights.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
