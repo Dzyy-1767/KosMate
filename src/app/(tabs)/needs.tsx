@@ -1,4 +1,6 @@
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -13,9 +15,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { COLORS } from '../constants/colors';
-import { useKosMate } from '../context/KosMateContext';
-import type { ShoppingCategory, ShoppingItem, ShoppingPriority } from '../types/need';
+import { COLORS } from '@/constants/colors';
+import { useKosMate } from '@/context/KosMateContext';
+import type { ShoppingCategory, ShoppingItem, ShoppingPriority } from '@/types/need';
 
 const CATEGORIES: ShoppingCategory[] = [
   'Kamar',
@@ -42,6 +44,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function NeedsScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { shoppingItems, addShoppingItem, toggleShoppingItem } = useKosMate();
 
@@ -150,8 +153,12 @@ export default function NeedsScreen() {
           {item.purchased && <Feather name="check" size={14} color="#FFFFFF" />}
         </TouchableOpacity>
 
-        {/* Item Info */}
-        <View style={styles.itemMain}>
+        {/* Item Info (tap to view detail) */}
+        <TouchableOpacity
+          style={styles.itemMain}
+          activeOpacity={0.7}
+          onPress={() => router.push(`/needs/${item.id}`)}
+        >
           <Text
             style={[styles.itemName, item.purchased && styles.itemNamePurchased]}
             numberOfLines={1}
@@ -169,17 +176,21 @@ export default function NeedsScreen() {
               <Text style={styles.targetDateText}>{formatDate(item.targetDate)}</Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
-        {/* Price Info */}
-        <View style={styles.itemPriceCol}>
+        {/* Price Info (tap to view detail) */}
+        <TouchableOpacity
+          style={styles.itemPriceCol}
+          activeOpacity={0.7}
+          onPress={() => router.push(`/needs/${item.id}`)}
+        >
           <Text style={[styles.itemPriceText, item.purchased && styles.itemPricePurchased]}>
             {formatShortRupiah(item.purchased && item.actualPrice ? item.actualPrice : item.price)}
           </Text>
           <Text style={styles.itemPriceLabel}>
             {item.purchased ? 'Aktual' : 'Estimasi'}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -201,9 +212,14 @@ export default function NeedsScreen() {
       </View>
 
       {/* ─── Total Estimate Card ─────────────────────────────────── */}
-      <View style={styles.estimateCard}>
+      <LinearGradient
+        colors={['#FDF2E6', '#F3E1CD']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.estimateCard}
+      >
         <View style={styles.estimateIconBox}>
-          <Feather name="shopping-cart" size={24} color={COLORS.primary} />
+          <Feather name="shopping-cart" size={22} color={COLORS.primary} />
         </View>
         <View style={styles.estimateDetails}>
           <View>
@@ -216,7 +232,7 @@ export default function NeedsScreen() {
             <Text style={styles.estimateCount}>{unpurchased.length} barang</Text>
           </View>
         </View>
-      </View>
+      </LinearGradient>
 
       {/* ─── Add Button ─────────────────────────────────────────── */}
       <TouchableOpacity
@@ -516,28 +532,28 @@ const styles = StyleSheet.create({
   estimateCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 22,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#ECE8E3',
+    borderColor: '#E8D4BE',
     shadowColor: '#312C51',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 3,
   },
   estimateIconBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: '#FAF8F5',
+    width: 48,
+    height: 48,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
     borderWidth: 1,
-    borderColor: '#E6E2EA',
+    borderColor: '#EAD6BF',
   },
   estimateDetails: {
     flex: 1,
@@ -547,24 +563,26 @@ const styles = StyleSheet.create({
   },
   estimateLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: '#6E687A',
+    fontWeight: '500',
     marginBottom: 3,
   },
   estimateAmount: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: COLORS.primary,
+    letterSpacing: -0.3,
   },
   estimateDivider: {
     width: 1,
     height: 32,
-    backgroundColor: '#E6E2EA',
-    marginHorizontal: 12,
+    backgroundColor: 'rgba(98, 91, 108, 0.18)',
+    marginHorizontal: 14,
   },
   estimateCount: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.secondary,
+    color: COLORS.primary,
   },
   addButton: {
     flexDirection: 'row',

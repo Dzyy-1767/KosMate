@@ -1,11 +1,13 @@
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { COLORS } from '../constants/colors';
-import { useKosMate } from '../context/KosMateContext';
-import type { Transaction } from '../types/expense';
+import { COLORS } from '@/constants/colors';
+import { useKosMate } from '@/context/KosMateContext';
+import type { Transaction } from '@/types/expense';
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -29,6 +31,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function FinanceScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { transactions } = useKosMate();
 
@@ -79,7 +82,12 @@ export default function FinanceScreen() {
     const iconName = isIncome ? 'arrow-down-left' : getCategoryIcon(tx.category);
 
     return (
-      <View key={tx.id} style={styles.txRow}>
+      <TouchableOpacity
+        key={tx.id}
+        style={styles.txRow}
+        activeOpacity={0.7}
+        onPress={() => router.push(`/expenses/${tx.id}`)}
+      >
         <View style={[styles.txIconBox, isIncome ? styles.txIconIncome : styles.txIconExpense]}>
           <Feather
             name={iconName}
@@ -97,11 +105,14 @@ export default function FinanceScreen() {
           </Text>
         </View>
 
-        <Text style={isIncome ? styles.txAmountIncome : styles.txAmountExpense}>
-          {isIncome ? '+' : '-'}
-          {formatShortRupiah(tx.amount)}
-        </Text>
-      </View>
+        <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: 6 }}>
+          <Text style={isIncome ? styles.txAmountIncome : styles.txAmountExpense}>
+            {isIncome ? '+' : '-'}
+            {formatShortRupiah(tx.amount)}
+          </Text>
+          <Feather name="chevron-right" size={16} color="#AAA5B0" style={{ alignSelf: 'center' }} />
+        </View>
+      </TouchableOpacity>
     );
   };
 
@@ -141,15 +152,20 @@ export default function FinanceScreen() {
       </View>
 
       {/* ─── Balance Card ────────────────────────────────────────── */}
-      <View style={styles.balanceCard}>
+      <LinearGradient
+        colors={[COLORS.primary, COLORS.secondary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.balanceCard}
+      >
         <View>
           <Text style={styles.balanceLabel}>Uang aktual tersisa</Text>
           <Text style={styles.balanceAmount}>{formatRupiah(actualBalance)}</Text>
         </View>
         <View style={styles.balanceIconCircle}>
-          <Feather name="credit-card" size={24} color={COLORS.primary} />
+          <Feather name="credit-card" size={24} color={COLORS.peach} />
         </View>
-      </View>
+      </LinearGradient>
 
       {/* ─── Section: Pemasukan Terbaru ──────────────────────────── */}
       <View style={styles.sectionHeader}>
@@ -284,37 +300,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 22,
+    padding: 20,
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#ECE8E3',
-    shadowColor: '#312C51',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 6,
   },
   balanceLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: '#D1CCE0',
+    fontWeight: '500',
     marginBottom: 4,
+    letterSpacing: 0.2,
   },
   balanceAmount: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
-    color: COLORS.primary,
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
   },
   balanceIconCircle: {
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E6E2EA',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
   },
   sectionHeader: {
     flexDirection: 'row',

@@ -5,8 +5,8 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { COLORS } from '../constants/colors';
-import { useKosMate } from '../context/KosMateContext';
+import { COLORS } from '@/constants/colors';
+import { useKosMate } from '@/context/KosMateContext';
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -238,7 +238,12 @@ export default function DashboardScreen() {
               const iconName = isIncome ? 'arrow-down-left' : getCategoryIcon(tx.category);
 
               return (
-                <View key={tx.id} style={styles.txRow}>
+                <TouchableOpacity
+                  key={tx.id}
+                  style={styles.txRow}
+                  activeOpacity={0.7}
+                  onPress={() => router.push(`/expenses/${tx.id}`)}
+                >
                   <View
                     style={[
                       styles.txIconBox,
@@ -265,7 +270,7 @@ export default function DashboardScreen() {
                     {isIncome ? '+' : '-'}
                     {formatShortRupiah(tx.amount)}
                   </Text>
-                </View>
+                </TouchableOpacity>
               );
             })
           )}

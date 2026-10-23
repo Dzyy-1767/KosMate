@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ScrollView,
@@ -11,12 +12,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { COLORS } from '../constants/colors';
-import { useKosMate } from '../context/KosMateContext';
+import { COLORS } from '@/constants/colors';
+import { useKosMate } from '@/context/KosMateContext';
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { profile, updateProfile } = useKosMate();
+  const { profile, updateProfile, logout } = useKosMate();
 
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(profile.name);
@@ -140,6 +142,26 @@ export default function ProfileScreen() {
             <View style={styles.settingContent}>
               <Text style={styles.settingLabel}>Tentang KosMate</Text>
               <Text style={styles.settingDesc}>Versi 1.0.0</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color="#AAA5B0" />
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity
+            style={styles.settingRow}
+            activeOpacity={0.7}
+            onPress={async () => {
+              await logout();
+              router.replace('/login');
+            }}
+          >
+            <View style={[styles.settingIcon, { backgroundColor: '#FFF0ED' }]}>
+              <Feather name="log-out" size={18} color={COLORS.error} />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={[styles.settingLabel, { color: COLORS.error }]}>Keluar / Ganti Akun</Text>
+              <Text style={styles.settingDesc}>Masuk dengan akun KosMate lain</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#AAA5B0" />
           </TouchableOpacity>

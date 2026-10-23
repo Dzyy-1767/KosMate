@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   NEEDS: '@kosmate:shopping_items',
   BUDGET: '@kosmate:monthly_budget',
   PROFILE: '@kosmate:user_profile',
+  AUTH: '@kosmate:is_logged_in',
 };
 
 // ─── Initial Seed Data (from Design) ──────────────────────────────────────────
@@ -108,6 +109,11 @@ const DEFAULT_BUDGET = 4000000;
 
 // ─── Context Type ─────────────────────────────────────────────────────────────
 type KosMateContextType = {
+  // Auth
+  isLoggedIn: boolean | null; // null = still loading from storage
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+
   // Transactions
   transactions: Transaction[];
   addTransaction: (data: Omit<Transaction, 'id' | 'createdAt'>) => Promise<void>;
@@ -140,6 +146,7 @@ type KosMateContextType = {
 const KosMateContext = createContext<KosMateContextType | null>(null);
 
 export function KosMateProvider({ children }: { children: React.ReactNode }) {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = loading
   const [transactions, setTransactions] = useState<Transaction[]>(SEED_TRANSACTIONS);
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(SEED_NEEDS);
   const [monthlyBudget, setMonthlyBudget] = useState<number>(DEFAULT_BUDGET);
@@ -151,6 +158,10 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadData() {
       try {
+        // ── Auth state ────────────────────────────────────────────
+        const storedAuth = await AsyncStorage.getItem(STORAGE_KEYS.AUTH);
+        setIsLoggedIn(storedAuth === 'true');
+
         const storedTransactions = await AsyncStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
         if (storedTransactions) {
           setTransactions(JSON.parse(storedTransactions));
@@ -180,6 +191,7 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (err) {
         console.error('Failed to load data from storage', err);
+        setIsLoggedIn(false); // fallback: not logged in
       }
     }
     loadData();
@@ -205,9 +217,14 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteTransaction = async (id: string) => {
-    const updated = transactions.filter((t) => t.id !== id);
-    setTransactions(updated);
-    await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(updated));
+    // Compute filtered list from current state BEFORE calling setTransactions
+    const nextTransactions = transactions.filter((t) => t.id !== id);
+    setTransactions(nextTransactions);
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(nextTransactions));
+    } catch (err) {
+      console.error('Failed to save transactions after deletion', err);
+    }
     showToast('Transaksi berhasil dihapus');
   };
 
@@ -218,10 +235,31 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
       purchased: false,
       createdAt: new Date().toISOString(),
     };
-    const updated = [newItem, ...shoppingItems];
-    setShoppingItems(updated);
-    await AsyncStorage.setItem(STORAGE_KEYS.NEEDS, JSON.stringify(updated));
+    let nextItems: ShoppingItem[] = [];
+    setShoppingItems((prev) => {
+      nextItems = [newItem, ...prev];
+      return nextItems;
+    });
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.NEEDS, JSON.stringify(nextItems));
+    } catch (err) {
+      console.error('Failed to save needs after adding', err);
+    }
     showToast('Kebutuhan baru berhasil ditambahkan');
+  };
+
+  const deleteShoppingItem = async (id: string) => {
+    let nextItems: ShoppingItem[] = [];
+    setShoppingItems((prev) => {
+      nextItems = prev.filter((item) => item.id !== id);
+      return nextItems;
+    });
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.NEEDS, JSON.stringify(nextItems));
+    } catch (err) {
+      console.error('Failed to save needs after deletion', err);
+    }
+    showToast('Kebutuhan berhasil dihapus');
   };
 
   const toggleShoppingItem = async (id: string, actualPrice?: number) => {
@@ -246,13 +284,6 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const deleteShoppingItem = async (id: string) => {
-    const updated = shoppingItems.filter((i) => i.id !== id);
-    setShoppingItems(updated);
-    await AsyncStorage.setItem(STORAGE_KEYS.NEEDS, JSON.stringify(updated));
-    showToast('Kebutuhan berhasil dihapus');
-  };
-
   const updateMonthlyBudget = async (amount: number) => {
     setMonthlyBudget(amount);
     await AsyncStorage.setItem(STORAGE_KEYS.BUDGET, String(amount));
@@ -266,6 +297,16 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
     showToast('Profil berhasil disimpan');
   };
 
+  const login = async () => {
+    setIsLoggedIn(true);
+    await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'true');
+  };
+
+  const logout = async () => {
+    setIsLoggedIn(false);
+    await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'false');
+  };
+
   const openQuickSheet = (type: 'quick' | 'income' | 'expense' = 'quick') => {
     setQuickSheet(type);
   };
@@ -277,6 +318,9 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
   return (
     <KosMateContext.Provider
       value={{
+        isLoggedIn,
+        login,
+        logout,
         transactions,
         addTransaction,
         deleteTransaction,

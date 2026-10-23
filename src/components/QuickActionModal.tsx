@@ -104,45 +104,53 @@ export function QuickActionModal() {
           {/* ─── Mode 1: Quick Action Picker ─────────────────────── */}
           {quickSheet === 'quick' && (
             <View style={styles.quickContent}>
-              <Text style={styles.sheetTitle}>Tambah transaksi</Text>
+              <View style={styles.quickHeader}>
+                <Text style={styles.sheetTitle}>Tambah Transaksi</Text>
+              </View>
 
-              <TouchableOpacity
-                style={styles.quickOption}
-                activeOpacity={0.7}
-                onPress={() => {
-                  resetForm();
-                  setCategory('Keluarga');
-                  openQuickSheet('income');
-                }}
-              >
-                <View style={[styles.iconCircle, { backgroundColor: '#EAF4EE' }]}>
-                  <Feather name="arrow-down-left" size={20} color={COLORS.success} />
-                </View>
-                <View style={styles.optionTextContainer}>
-                  <Text style={styles.optionTitle}>Tambah Pemasukan</Text>
-                  <Text style={styles.optionDesc}>Gaji, uang saku, atau pendapatan lain</Text>
-                </View>
-                <Feather name="chevron-right" size={18} color="#AAA5B0" />
-              </TouchableOpacity>
+              <View style={styles.quickRow}>
+                <TouchableOpacity
+                  style={styles.quickCard}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    resetForm();
+                    setCategory('Keluarga');
+                    openQuickSheet('income');
+                  }}
+                >
+                  <View style={styles.cardHeader}>
+                    <View style={[styles.iconCircle, { backgroundColor: '#EAF4EE' }]}>
+                      <Feather name="arrow-down-left" size={20} color={COLORS.success} />
+                    </View>
+                    <Feather name="chevron-right" size={16} color="#AAA5B0" />
+                  </View>
+                  <View style={styles.cardBody}>
+                    <Text style={styles.cardTitle}>Tambah Pemasukan</Text>
+                    <Text style={styles.cardDesc}>Gaji, uang saku, atau pendapatan lain</Text>
+                  </View>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.quickOption}
-                activeOpacity={0.7}
-                onPress={() => {
-                  resetForm();
-                  setCategory('Makanan');
-                  openQuickSheet('expense');
-                }}
-              >
-                <View style={[styles.iconCircle, { backgroundColor: '#FFF0ED' }]}>
-                  <Feather name="arrow-up-right" size={20} color="#E06D53" />
-                </View>
-                <View style={styles.optionTextContainer}>
-                  <Text style={styles.optionTitle}>Tambah Pengeluaran</Text>
-                  <Text style={styles.optionDesc}>Belanja, tagihan, atau kebutuhan harian</Text>
-                </View>
-                <Feather name="chevron-right" size={18} color="#AAA5B0" />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.quickCard}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    resetForm();
+                    setCategory('Makanan');
+                    openQuickSheet('expense');
+                  }}
+                >
+                  <View style={styles.cardHeader}>
+                    <View style={[styles.iconCircle, { backgroundColor: '#FFF0ED' }]}>
+                      <Feather name="arrow-up-right" size={20} color="#E06D53" />
+                    </View>
+                    <Feather name="chevron-right" size={16} color="#AAA5B0" />
+                  </View>
+                  <View style={styles.cardBody}>
+                    <Text style={styles.cardTitle}>Tambah Pengeluaran</Text>
+                    <Text style={styles.cardDesc}>Belanja, tagihan, atau kebutuhan harian</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
 
               <TouchableOpacity
                 style={styles.cancelButton}
@@ -298,36 +306,52 @@ const styles = StyleSheet.create({
   quickContent: {
     paddingBottom: 8,
   },
-  quickOption: {
+  quickHeader: {
+    marginBottom: 2,
+  },
+  quickRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: 12,
+    marginTop: 12,
+  },
+  quickCard: {
+    flex: 1,
     backgroundColor: '#FAF8F5',
     borderRadius: 16,
     padding: 14,
-    marginTop: 12,
     borderWidth: 1,
     borderColor: '#ECE8E3',
+    justifyContent: 'space-between',
+    minHeight: 136,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
   },
-  optionTextContainer: {
+  cardBody: {
     flex: 1,
+    justifyContent: 'flex-end',
   },
-  optionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.text,
+    marginBottom: 4,
+    lineHeight: 18,
   },
-  optionDesc: {
-    fontSize: 12,
+  cardDesc: {
+    fontSize: 11,
     color: COLORS.textSecondary,
-    marginTop: 2,
+    lineHeight: 15,
   },
   cancelButton: {
     marginTop: 16,
