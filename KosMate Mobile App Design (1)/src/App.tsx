@@ -1,144 +1,225 @@
-import { FormEvent, ReactNode, useMemo, useState } from 'react'
+import { FormEvent, ReactNode, useMemo, useState } from "react";
 
-type Screen = 'dashboard' | 'list' | 'finance' | 'profile'
-type TransactionType = 'income' | 'expense'
-type ShoppingPriority = 'Tinggi' | 'Sedang' | 'Rendah'
+type Screen = "dashboard" | "list" | "finance" | "profile";
+type TransactionType = "income" | "expense";
+type ShoppingPriority = "Tinggi" | "Sedang" | "Rendah";
 type IconName =
-  | 'home'
-  | 'list'
-  | 'wallet'
-  | 'user'
-  | 'plus'
-  | 'arrow-up'
-  | 'arrow-down'
-  | 'cart'
-  | 'food'
-  | 'transport'
-  | 'house'
-  | 'book'
-  | 'check'
-  | 'chevron'
-  | 'close'
-  | 'calendar'
-  | 'edit'
-  | 'bell'
-  | 'shield'
-  | 'info'
+  | "home"
+  | "list"
+  | "wallet"
+  | "user"
+  | "plus"
+  | "arrow-up"
+  | "arrow-down"
+  | "cart"
+  | "food"
+  | "transport"
+  | "house"
+  | "book"
+  | "check"
+  | "chevron"
+  | "close"
+  | "calendar"
+  | "edit"
+  | "bell"
+  | "shield"
+  | "info";
 
 type Transaction = {
-  id: number
-  type: TransactionType
-  amount: number
-  date: string
-  note: string
-  category: string
-}
+  id: number;
+  type: TransactionType;
+  amount: number;
+  date: string;
+  note: string;
+  category: string;
+};
 
 type ShoppingItem = {
-  id: number
-  name: string
-  category: string
-  price: number
-  purchased: boolean
-  priority: ShoppingPriority
-  targetDate: string
-  actualPrice?: number
-}
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  purchased: boolean;
+  priority: ShoppingPriority;
+  targetDate: string;
+  actualPrice?: number;
+};
 
 const initialTransactions: Transaction[] = [
-  { id: 1, type: 'income', amount: 3500000, date: '2025-06-01', note: 'Uang bulanan', category: 'Keluarga' },
-  { id: 2, type: 'income', amount: 1250000, date: '2025-06-05', note: 'Proyek desain', category: 'Freelance' },
-  { id: 3, type: 'income', amount: 450000, date: '2025-06-08', note: 'Jual buku bekas', category: 'Lainnya' },
-  { id: 4, type: 'expense', amount: 1250000, date: '2025-06-02', note: 'Sewa kos bulan Juni', category: 'Kos' },
-  { id: 5, type: 'expense', amount: 185000, date: '2025-06-10', note: 'Belanja mingguan', category: 'Makanan' },
-  { id: 6, type: 'expense', amount: 75000, date: '2025-06-11', note: 'Isi ulang kartu transportasi', category: 'Transportasi' },
-  { id: 7, type: 'expense', amount: 48000, date: '2025-06-12', note: 'Kopi dan makan siang', category: 'Makanan' },
-  { id: 8, type: 'expense', amount: 129000, date: '2025-06-13', note: 'Internet kos', category: 'Tagihan' },
-]
+  {
+    id: 1,
+    type: "income",
+    amount: 3500000,
+    date: "2025-06-01",
+    note: "Uang bulanan",
+    category: "Keluarga",
+  },
+  {
+    id: 2,
+    type: "income",
+    amount: 1250000,
+    date: "2025-06-05",
+    note: "Proyek desain",
+    category: "Freelance",
+  },
+  {
+    id: 3,
+    type: "income",
+    amount: 450000,
+    date: "2025-06-08",
+    note: "Jual buku bekas",
+    category: "Lainnya",
+  },
+  {
+    id: 4,
+    type: "expense",
+    amount: 1250000,
+    date: "2025-06-02",
+    note: "Sewa kos bulan Juni",
+    category: "Kos",
+  },
+  {
+    id: 5,
+    type: "expense",
+    amount: 185000,
+    date: "2025-06-10",
+    note: "Belanja mingguan",
+    category: "Makanan",
+  },
+  {
+    id: 6,
+    type: "expense",
+    amount: 75000,
+    date: "2025-06-11",
+    note: "Isi ulang kartu transportasi",
+    category: "Transportasi",
+  },
+  {
+    id: 7,
+    type: "expense",
+    amount: 48000,
+    date: "2025-06-12",
+    note: "Kopi dan makan siang",
+    category: "Makanan",
+  },
+  {
+    id: 8,
+    type: "expense",
+    amount: 129000,
+    date: "2025-06-13",
+    note: "Internet kos",
+    category: "Tagihan",
+  },
+];
 
 const initialShoppingItems: ShoppingItem[] = [
   {
     id: 1,
-    name: 'Rak sepatu minimalis',
-    category: 'Kamar',
+    name: "Rak sepatu minimalis",
+    category: "Kamar",
     price: 185000,
     purchased: false,
-    priority: 'Tinggi',
-    targetDate: '2025-06-16',
+    priority: "Tinggi",
+    targetDate: "2025-06-16",
   },
   {
     id: 2,
-    name: 'Deterjen & pewangi',
-    category: 'Kebersihan',
+    name: "Deterjen & pewangi",
+    category: "Kebersihan",
     price: 72000,
     purchased: false,
-    priority: 'Sedang',
-    targetDate: '2025-06-18',
+    priority: "Sedang",
+    targetDate: "2025-06-18",
   },
   {
     id: 3,
-    name: 'Lampu meja belajar',
-    category: 'Belajar',
+    name: "Lampu meja belajar",
+    category: "Belajar",
     price: 149000,
     purchased: false,
-    priority: 'Rendah',
-    targetDate: '2025-06-25',
+    priority: "Rendah",
+    targetDate: "2025-06-25",
   },
   {
     id: 4,
-    name: 'Galon air mineral',
-    category: 'Dapur',
+    name: "Galon air mineral",
+    category: "Dapur",
     price: 23000,
     actualPrice: 22000,
     purchased: true,
-    priority: 'Tinggi',
-    targetDate: '2025-06-12',
+    priority: "Tinggi",
+    targetDate: "2025-06-12",
   },
   {
     id: 5,
-    name: 'Gantungan baju',
-    category: 'Kamar',
+    name: "Gantungan baju",
+    category: "Kamar",
     price: 48000,
     actualPrice: 45000,
     purchased: true,
-    priority: 'Sedang',
-    targetDate: '2025-06-10',
+    priority: "Sedang",
+    targetDate: "2025-06-10",
   },
   {
     id: 6,
-    name: 'Kotak penyimpanan',
-    category: 'Kamar',
+    name: "Kotak penyimpanan",
+    category: "Kamar",
     price: 89000,
     actualPrice: 92000,
     purchased: true,
-    priority: 'Rendah',
-    targetDate: '2025-06-08',
+    priority: "Rendah",
+    targetDate: "2025-06-08",
   },
-]
+];
 
 const navItems: { id: Screen; label: string; icon: IconName }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'home' },
-  { id: 'list', label: 'List', icon: 'list' },
-  { id: 'finance', label: 'Keuangan', icon: 'wallet' },
-  { id: 'profile', label: 'Profil', icon: 'user' },
-]
+  { id: "dashboard", label: "Dashboard", icon: "home" },
+  { id: "list", label: "List", icon: "list" },
+  { id: "finance", label: "Keuangan", icon: "wallet" },
+  { id: "profile", label: "Profil", icon: "user" },
+];
 
-const expenseCategories = ['Makanan', 'Transportasi', 'Kos', 'Tagihan', 'Belanja', 'Pendidikan', 'Lainnya']
+const expenseCategories = [
+  "Makanan",
+  "Transportasi",
+  "Kos",
+  "Tagihan",
+  "Belanja",
+  "Pendidikan",
+  "Lainnya",
+];
 
 const formatIDR = (amount: number) =>
-  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount)
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(amount);
 
-const formatShortIDR = (amount: number) => `Rp${new Intl.NumberFormat('id-ID').format(amount)}`
+const formatShortIDR = (amount: number) =>
+  `Rp${new Intl.NumberFormat("id-ID").format(amount)}`;
 
 const formatDate = (date: string) =>
-  new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(
-    new Date(`${date}T12:00:00`),
-  )
+  new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${date}T12:00:00`));
 
 const formatTargetDate = (date: string) =>
-  new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short' }).format(new Date(`${date}T12:00:00`))
+  new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(
+    new Date(`${date}T12:00:00`),
+  );
 
-function Icon({ name, size = 20, className = '' }: { name: IconName; size?: number; className?: string }) {
+function Icon({
+  name,
+  size = 20,
+  className = "",
+}: {
+  name: IconName;
+  size?: number;
+  className?: string;
+}) {
   const paths: Record<IconName, ReactNode> = {
     home: (
       <>
@@ -165,12 +246,12 @@ function Icon({ name, size = 20, className = '' }: { name: IconName; size?: numb
       </>
     ),
     plus: <path d="M12 5v14M5 12h14" />,
-    'arrow-up': (
+    "arrow-up": (
       <>
         <path d="m7 10 5-5 5 5M12 5v14" />
       </>
     ),
-    'arrow-down': (
+    "arrow-down": (
       <>
         <path d="m7 14 5 5 5-5M12 19V5" />
       </>
@@ -235,7 +316,7 @@ function Icon({ name, size = 20, className = '' }: { name: IconName; size?: numb
         <path d="M12 11v6M12 7h.01" />
       </>
     ),
-  }
+  };
   return (
     <svg
       width={size}
@@ -251,27 +332,31 @@ function Icon({ name, size = 20, className = '' }: { name: IconName; size?: numb
     >
       {paths[name]}
     </svg>
-  )
+  );
 }
 
 function Button({
   children,
   onClick,
-  variant = 'primary',
-  type = 'button',
-  className = '',
+  variant = "primary",
+  type = "button",
+  className = "",
 }: {
-  children: ReactNode
-  onClick?: () => void
-  variant?: 'primary' | 'secondary' | 'text'
-  type?: 'button' | 'submit'
-  className?: string
+  children: ReactNode;
+  onClick?: () => void;
+  variant?: "primary" | "secondary" | "text";
+  type?: "button" | "submit";
+  className?: string;
 }) {
   return (
-    <button type={type} onClick={onClick} className={`button button-${variant} ${className}`}>
+    <button
+      type={type}
+      onClick={onClick}
+      className={`button button-${variant} ${className}`}
+    >
       {children}
     </button>
-  )
+  );
 }
 
 function SectionTitle({
@@ -279,9 +364,9 @@ function SectionTitle({
   action,
   onAction,
 }: {
-  title: string
-  action?: string
-  onAction?: () => void
+  title: string;
+  action?: string;
+  onAction?: () => void;
 }) {
   return (
     <div className="section-heading">
@@ -292,29 +377,29 @@ function SectionTitle({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 function Field({
   label,
   value,
   onChange,
-  type = 'text',
+  type = "text",
   placeholder,
   required,
   options,
-  optionPlaceholder = 'Pilih kategori',
+  optionPlaceholder = "Pilih kategori",
   error,
 }: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  type?: string
-  placeholder?: string
-  required?: boolean
-  options?: string[]
-  optionPlaceholder?: string
-  error?: string
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+  options?: string[];
+  optionPlaceholder?: string;
+  error?: string;
 }) {
   return (
     <label className="field">
@@ -322,7 +407,10 @@ function Field({
         {label} {required && <b>*</b>}
       </span>
       {options ? (
-        <select value={value} onChange={(event) => onChange(event.target.value)}>
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        >
           <option value="">{optionPlaceholder}</option>
           {options.map((option) => (
             <option value={option} key={option}>
@@ -336,29 +424,29 @@ function Field({
           onChange={(event) => onChange(event.target.value)}
           type={type}
           placeholder={placeholder}
-          min={type === 'number' ? 0 : undefined}
+          min={type === "number" ? 0 : undefined}
         />
       )}
       {error && <small className="field-error">{error}</small>}
     </label>
-  )
+  );
 }
 
 function TransactionRow({ transaction }: { transaction: Transaction }) {
-  const isIncome = transaction.type === 'income'
+  const isIncome = transaction.type === "income";
   const categoryIcon: IconName =
-    transaction.category === 'Makanan'
-      ? 'food'
-      : transaction.category === 'Transportasi'
-        ? 'transport'
-        : transaction.category === 'Kos'
-          ? 'house'
+    transaction.category === "Makanan"
+      ? "food"
+      : transaction.category === "Transportasi"
+        ? "transport"
+        : transaction.category === "Kos"
+          ? "house"
           : isIncome
-            ? 'arrow-down'
-            : 'wallet'
+            ? "arrow-down"
+            : "wallet";
   return (
     <div className="transaction-row">
-      <div className={`transaction-icon ${isIncome ? 'income' : ''}`}>
+      <div className={`transaction-icon ${isIncome ? "income" : ""}`}>
         <Icon name={categoryIcon} size={19} />
       </div>
       <div className="transaction-main">
@@ -367,59 +455,59 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
           {transaction.category} · {formatDate(transaction.date)}
         </span>
       </div>
-      <strong className={isIncome ? 'amount-income' : 'amount-expense'}>
-        {isIncome ? '+' : '-'}
+      <strong className={isIncome ? "amount-income" : "amount-expense"}>
+        {isIncome ? "+" : "-"}
         {formatShortIDR(transaction.amount)}
       </strong>
     </div>
-  )
+  );
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <div className="empty-state">{text}</div>
+  return <div className="empty-state">{text}</div>;
 }
 
 function Dashboard({
   transactions,
   onOpenProfile,
 }: {
-  transactions: Transaction[]
-  onOpenProfile: () => void
+  transactions: Transaction[];
+  onOpenProfile: () => void;
 }) {
-  const budget = 4000000
-  const expenses = transactions.filter((item) => item.type === 'expense')
-  const spent = expenses.reduce((sum, item) => sum + item.amount, 0)
-  const remaining = budget - spent
-  const ratio = remaining / budget
+  const budget = 4000000;
+  const expenses = transactions.filter((item) => item.type === "expense");
+  const spent = expenses.reduce((sum, item) => sum + item.amount, 0);
+  const remaining = budget - spent;
+  const ratio = remaining / budget;
   const insight =
     ratio > 0.45
       ? {
-          status: 'Aman',
-          className: 'safe',
-          title: 'Keuanganmu masih terkendali',
-          text: 'Pengeluaranmu masih dalam batas sehat. Pertahankan ritme ini sampai akhir bulan.',
+          status: "Aman",
+          className: "safe",
+          title: "Keuanganmu masih terkendali",
+          text: "Pengeluaranmu masih dalam batas sehat. Pertahankan ritme ini sampai akhir bulan.",
         }
       : ratio > 0.2
         ? {
-            status: 'Kurang Aman',
-            className: 'warning',
-            title: 'Saatnya lebih berhati-hati',
-            text: 'Kurangi pengeluaran tidak penting agar anggaranmu cukup sampai akhir bulan.',
+            status: "Kurang Aman",
+            className: "warning",
+            title: "Saatnya lebih berhati-hati",
+            text: "Kurangi pengeluaran tidak penting agar anggaranmu cukup sampai akhir bulan.",
           }
         : {
-            status: 'Tidak Aman',
-            className: 'danger',
-            title: 'Anggaranmu hampir habis',
-            text: 'Prioritaskan kebutuhan utama dan hentikan pengeluaran impulsif untuk sementara.',
-          }
+            status: "Tidak Aman",
+            className: "danger",
+            title: "Anggaranmu hampir habis",
+            text: "Prioritaskan kebutuhan utama dan hentikan pengeluaran impulsif untuk sementara.",
+          };
   const categories = Object.entries(
     expenses.reduce<Record<string, number>>((acc, item) => {
-      acc[item.category] = (acc[item.category] || 0) + item.amount
-      return acc
+      acc[item.category] = (acc[item.category] || 0) + item.amount;
+      return acc;
     }, {}),
   )
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
+    .slice(0, 3);
 
   return (
     <div className="screen-content">
@@ -427,7 +515,11 @@ function Dashboard({
         <div>
           <h1>Hai, Naya!</h1>
         </div>
-        <button className="avatar-button" aria-label="Buka profil" onClick={onOpenProfile}>
+        <button
+          className="avatar-button"
+          aria-label="Buka profil"
+          onClick={onOpenProfile}
+        >
           NA
         </button>
       </header>
@@ -441,7 +533,10 @@ function Dashboard({
           <span className="month-pill">Juni 2025</span>
         </div>
         <div className="progress-track">
-          <div className="progress-fill" style={{ width: `${Math.min(100, (spent / budget) * 100)}%` }} />
+          <div
+            className="progress-fill"
+            style={{ width: `${Math.min(100, (spent / budget) * 100)}%` }}
+          />
         </div>
         <div className="budget-stats">
           <div>
@@ -468,18 +563,27 @@ function Dashboard({
         <SectionTitle title="Pengeluaran terbesar" />
         <div className="category-card">
           {categories.map(([name, amount], index) => {
-            const icon: IconName = name === 'Kos' ? 'house' : name === 'Makanan' ? 'food' : 'transport'
+            const icon: IconName =
+              name === "Kos"
+                ? "house"
+                : name === "Makanan"
+                  ? "food"
+                  : "transport";
             return (
               <div className="category-tile" key={name}>
                 <div className={`category-icon tone-${index + 1}`}>
                   <Icon name={icon} size={20} />
                 </div>
-                <span className="category-percent">{Math.round((amount / spent) * 100)}%</span>
+                <span className="category-percent">
+                  {Math.round((amount / spent) * 100)}%
+                </span>
                 <strong>{name}</strong>
-                <span className="category-amount">{formatShortIDR(amount)}</span>
+                <span className="category-amount">
+                  {formatShortIDR(amount)}
+                </span>
                 <span className="category-note">dari pengeluaran</span>
               </div>
-            )
+            );
           })}
         </div>
       </section>
@@ -497,7 +601,7 @@ function Dashboard({
         </div>
       </section>
     </div>
-  )
+  );
 }
 
 function ShoppingList({
@@ -505,21 +609,30 @@ function ShoppingList({
   onToggle,
   onAdd,
 }: {
-  items: ShoppingItem[]
-  onToggle: (item: ShoppingItem) => void
-  onAdd: () => void
+  items: ShoppingItem[];
+  onToggle: (item: ShoppingItem) => void;
+  onAdd: () => void;
 }) {
-  const [expanded, setExpanded] = useState<'unpurchased' | 'purchased' | null>(null)
-  const unpurchased = items.filter((item) => !item.purchased)
-  const purchased = items.filter((item) => item.purchased)
-  const estimated = unpurchased.reduce((sum, item) => sum + item.price, 0)
+  const [expanded, setExpanded] = useState<"unpurchased" | "purchased" | null>(
+    null,
+  );
+  const unpurchased = items.filter((item) => !item.purchased);
+  const purchased = items.filter((item) => item.purchased);
+  const estimated = unpurchased.reduce((sum, item) => sum + item.price, 0);
 
   const renderItem = (item: ShoppingItem) => (
-    <div className={`shopping-row ${item.purchased ? 'purchased' : ''}`} key={item.id}>
+    <div
+      className={`shopping-row ${item.purchased ? "purchased" : ""}`}
+      key={item.id}
+    >
       <button
         className="check-button"
         onClick={() => onToggle(item)}
-        aria-label={item.purchased ? `Tandai ${item.name} belum dibeli` : `Tandai ${item.name} sudah dibeli`}
+        aria-label={
+          item.purchased
+            ? `Tandai ${item.name} belum dibeli`
+            : `Tandai ${item.name} sudah dibeli`
+        }
       >
         {item.purchased && <Icon name="check" size={15} />}
       </button>
@@ -527,7 +640,11 @@ function ShoppingList({
         <strong>{item.name}</strong>
         <div className="shopping-meta">
           <span>{item.category}</span>
-          <span className={`priority-badge priority-${item.priority.toLowerCase()}`}>{item.priority}</span>
+          <span
+            className={`priority-badge priority-${item.priority.toLowerCase()}`}
+          >
+            {item.priority}
+          </span>
           <span className="target-date">
             <Icon name="calendar" size={12} />
             {formatTargetDate(item.targetDate)}
@@ -535,11 +652,15 @@ function ShoppingList({
         </div>
       </div>
       <div className="shopping-price">
-        <strong>{formatShortIDR(item.purchased ? (item.actualPrice ?? item.price) : item.price)}</strong>
-        <small>{item.purchased ? 'Aktual' : 'Estimasi'}</small>
+        <strong>
+          {formatShortIDR(
+            item.purchased ? (item.actualPrice ?? item.price) : item.price,
+          )}
+        </strong>
+        <small>{item.purchased ? "Aktual" : "Estimasi"}</small>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="screen-content shopping-screen">
@@ -573,40 +694,53 @@ function ShoppingList({
       <section>
         <SectionTitle
           title="Belum dibeli"
-          action={expanded === 'unpurchased' ? 'Tutup' : 'Lihat Semua'}
-          onAction={() => setExpanded(expanded === 'unpurchased' ? null : 'unpurchased')}
+          action={expanded === "unpurchased" ? "Tutup" : "Lihat Semua"}
+          onAction={() =>
+            setExpanded(expanded === "unpurchased" ? null : "unpurchased")
+          }
         />
         <div className="list-card">
-          {(expanded === 'unpurchased' ? unpurchased : unpurchased.slice(0, 3)).map(renderItem)}
-          {!unpurchased.length && <EmptyState text="Semua kebutuhan sudah terbeli." />}
+          {(expanded === "unpurchased"
+            ? unpurchased
+            : unpurchased.slice(0, 3)
+          ).map(renderItem)}
+          {!unpurchased.length && (
+            <EmptyState text="Semua kebutuhan sudah terbeli." />
+          )}
         </div>
       </section>
 
       <section>
         <SectionTitle
           title="Sudah dibeli"
-          action={expanded === 'purchased' ? 'Tutup' : 'Lihat Semua'}
-          onAction={() => setExpanded(expanded === 'purchased' ? null : 'purchased')}
+          action={expanded === "purchased" ? "Tutup" : "Lihat Semua"}
+          onAction={() =>
+            setExpanded(expanded === "purchased" ? null : "purchased")
+          }
         />
         <div className="list-card">
-          {(expanded === 'purchased' ? purchased : purchased.slice(0, 3)).map(renderItem)}
-          {!purchased.length && <EmptyState text="Belum ada barang yang dibeli." />}
+          {(expanded === "purchased" ? purchased : purchased.slice(0, 3)).map(
+            renderItem,
+          )}
+          {!purchased.length && (
+            <EmptyState text="Belum ada barang yang dibeli." />
+          )}
         </div>
       </section>
     </div>
-  )
+  );
 }
 
 function Finance({ transactions }: { transactions: Transaction[] }) {
-  const [expanded, setExpanded] = useState<TransactionType | null>(null)
+  const [expanded, setExpanded] = useState<TransactionType | null>(null);
   const income = transactions
-    .filter((item) => item.type === 'income')
-    .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
+    .filter((item) => item.type === "income")
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
   const expenses = transactions
-    .filter((item) => item.type === 'expense')
-    .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
-  const totalIncome = income.reduce((sum, item) => sum + item.amount, 0)
-  const totalExpense = expenses.reduce((sum, item) => sum + item.amount, 0)
+    .filter((item) => item.type === "expense")
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  const totalIncome = income.reduce((sum, item) => sum + item.amount, 0);
+  const totalExpense = expenses.reduce((sum, item) => sum + item.amount, 0);
 
   return (
     <div className="screen-content finance-screen">
@@ -649,11 +783,11 @@ function Finance({ transactions }: { transactions: Transaction[] }) {
       <section>
         <SectionTitle
           title="Pemasukan terbaru"
-          action={expanded === 'income' ? 'Tutup' : 'Lihat Semua'}
-          onAction={() => setExpanded(expanded === 'income' ? null : 'income')}
+          action={expanded === "income" ? "Tutup" : "Lihat Semua"}
+          onAction={() => setExpanded(expanded === "income" ? null : "income")}
         />
         <div className="list-card">
-          {(expanded === 'income' ? income : income.slice(0, 3)).map((item) => (
+          {(expanded === "income" ? income : income.slice(0, 3)).map((item) => (
             <TransactionRow transaction={item} key={item.id} />
           ))}
         </div>
@@ -662,38 +796,53 @@ function Finance({ transactions }: { transactions: Transaction[] }) {
       <section>
         <SectionTitle
           title="Pengeluaran terbaru"
-          action={expanded === 'expense' ? 'Tutup' : 'Lihat Semua'}
-          onAction={() => setExpanded(expanded === 'expense' ? null : 'expense')}
+          action={expanded === "expense" ? "Tutup" : "Lihat Semua"}
+          onAction={() =>
+            setExpanded(expanded === "expense" ? null : "expense")
+          }
         />
         <div className="list-card">
-          {(expanded === 'expense' ? expenses : expenses.slice(0, 3)).map((item) => (
-            <TransactionRow transaction={item} key={item.id} />
-          ))}
+          {(expanded === "expense" ? expenses : expenses.slice(0, 3)).map(
+            (item) => (
+              <TransactionRow transaction={item} key={item.id} />
+            ),
+          )}
         </div>
       </section>
     </div>
-  )
+  );
 }
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+function Toggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: () => void;
+}) {
   return (
-    <button className={`toggle ${checked ? 'on' : ''}`} onClick={onChange} role="switch" aria-checked={checked}>
+    <button
+      className={`toggle ${checked ? "on" : ""}`}
+      onClick={onChange}
+      role="switch"
+      aria-checked={checked}
+    >
       <span />
     </button>
-  )
+  );
 }
 
 function Profile() {
-  const [name, setName] = useState('Naya Ardhani')
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(name)
-  const [notifications, setNotifications] = useState(true)
-  const [budgetReminder, setBudgetReminder] = useState(true)
+  const [name, setName] = useState("Naya Ardhani");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(name);
+  const [notifications, setNotifications] = useState(true);
+  const [budgetReminder, setBudgetReminder] = useState(true);
 
   const saveName = () => {
-    if (draft.trim()) setName(draft.trim())
-    setEditing(false)
-  }
+    if (draft.trim()) setName(draft.trim());
+    setEditing(false);
+  };
 
   return (
     <div className="screen-content profile-screen">
@@ -707,7 +856,12 @@ function Profile() {
         <div className="profile-avatar">NA</div>
         {editing ? (
           <div className="edit-name">
-            <input value={draft} onChange={(event) => setDraft(event.target.value)} autoFocus aria-label="Nama profil" />
+            <input
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              autoFocus
+              aria-label="Nama profil"
+            />
             <Button onClick={saveName}>Simpan</Button>
           </div>
         ) : (
@@ -733,7 +887,10 @@ function Profile() {
               <strong>Notifikasi transaksi</strong>
               <span>Info saat ada aktivitas baru</span>
             </div>
-            <Toggle checked={notifications} onChange={() => setNotifications(!notifications)} />
+            <Toggle
+              checked={notifications}
+              onChange={() => setNotifications(!notifications)}
+            />
           </div>
           <div className="setting-row">
             <div className="setting-icon">
@@ -743,7 +900,10 @@ function Profile() {
               <strong>Pengingat anggaran</strong>
               <span>Peringatan saat mendekati batas</span>
             </div>
-            <Toggle checked={budgetReminder} onChange={() => setBudgetReminder(!budgetReminder)} />
+            <Toggle
+              checked={budgetReminder}
+              onChange={() => setBudgetReminder(!budgetReminder)}
+            />
           </div>
         </div>
       </section>
@@ -765,7 +925,7 @@ function Profile() {
       </section>
       <p className="profile-note">Dibuat untuk menemani hidup mandirimu.</p>
     </div>
-  )
+  );
 }
 
 function Sheet({
@@ -773,13 +933,18 @@ function Sheet({
   children,
   onClose,
 }: {
-  title?: string
-  children: ReactNode
-  onClose: () => void
+  title?: string;
+  children: ReactNode;
+  onClose: () => void;
 }) {
   return (
     <div className="sheet-layer" role="presentation" onMouseDown={onClose}>
-      <section className="bottom-sheet" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
+      <section
+        className="bottom-sheet"
+        role="dialog"
+        aria-modal="true"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
         <div className="sheet-handle" />
         {title && (
           <div className="sheet-header">
@@ -792,7 +957,7 @@ function Sheet({
         {children}
       </section>
     </div>
-  )
+  );
 }
 
 function AddTransactionForm({
@@ -800,34 +965,37 @@ function AddTransactionForm({
   onCancel,
   onSave,
 }: {
-  type: TransactionType
-  onCancel: () => void
-  onSave: (transaction: Omit<Transaction, 'id'>) => void
+  type: TransactionType;
+  onCancel: () => void;
+  onSave: (transaction: Omit<Transaction, "id">) => void;
 }) {
-  const [amount, setAmount] = useState('')
-  const [date, setDate] = useState('2025-06-14')
-  const [note, setNote] = useState('')
-  const [category, setCategory] = useState('')
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const isExpense = type === 'expense'
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState("2025-06-14");
+  const [note, setNote] = useState("");
+  const [category, setCategory] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const isExpense = type === "expense";
 
   const submit = (event: FormEvent) => {
-    event.preventDefault()
-    const nextErrors: Record<string, string> = {}
-    if (!amount || Number(amount) <= 0) nextErrors.amount = 'Masukkan nominal yang valid.'
-    if (!date) nextErrors.date = 'Tanggal wajib dipilih.'
-    if (isExpense && !category) nextErrors.category = 'Pilih kategori pengeluaran.'
-    if (isExpense && !note.trim()) nextErrors.note = 'Catatan pengeluaran wajib diisi.'
-    setErrors(nextErrors)
-    if (Object.keys(nextErrors).length) return
+    event.preventDefault();
+    const nextErrors: Record<string, string> = {};
+    if (!amount || Number(amount) <= 0)
+      nextErrors.amount = "Masukkan nominal yang valid.";
+    if (!date) nextErrors.date = "Tanggal wajib dipilih.";
+    if (isExpense && !category)
+      nextErrors.category = "Pilih kategori pengeluaran.";
+    if (isExpense && !note.trim())
+      nextErrors.note = "Catatan pengeluaran wajib diisi.";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
     onSave({
       type,
       amount: Number(amount),
       date,
-      note: note.trim() || 'Pemasukan baru',
-      category: isExpense ? category : 'Lainnya',
-    })
-  }
+      note: note.trim() || "Pemasukan baru",
+      category: isExpense ? category : "Lainnya",
+    });
+  };
 
   return (
     <form onSubmit={submit} className="form-stack">
@@ -840,7 +1008,14 @@ function AddTransactionForm({
         required
         error={errors.amount}
       />
-      <Field label="Tanggal" value={date} onChange={setDate} type="date" required error={errors.date} />
+      <Field
+        label="Tanggal"
+        value={date}
+        onChange={setDate}
+        type="date"
+        required
+        error={errors.date}
+      />
       {isExpense && (
         <Field
           label="Kategori"
@@ -855,7 +1030,7 @@ function AddTransactionForm({
         label="Catatan"
         value={note}
         onChange={setNote}
-        placeholder={isExpense ? 'Contoh: Makan siang' : 'Contoh: Bonus proyek'}
+        placeholder={isExpense ? "Contoh: Makan siang" : "Contoh: Bonus proyek"}
         required={isExpense}
         error={errors.note}
       />
@@ -866,36 +1041,50 @@ function AddTransactionForm({
         <Button type="submit">Simpan</Button>
       </div>
     </form>
-  )
+  );
 }
 
 function AddShoppingForm({
   onCancel,
   onSave,
 }: {
-  onCancel: () => void
-  onSave: (item: Omit<ShoppingItem, 'id' | 'purchased'>) => void
+  onCancel: () => void;
+  onSave: (item: Omit<ShoppingItem, "id" | "purchased">) => void;
 }) {
-  const [name, setName] = useState('')
-  const [category, setCategory] = useState('')
-  const [price, setPrice] = useState('')
-  const [priority, setPriority] = useState<ShoppingPriority | ''>('')
-  const [targetDate, setTargetDate] = useState('2025-06-20')
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const categories = ['Kamar', 'Dapur', 'Kebersihan', 'Belajar', 'Elektronik', 'Lainnya']
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
+  const [price, setPrice] = useState("");
+  const [priority, setPriority] = useState<ShoppingPriority | "">("");
+  const [targetDate, setTargetDate] = useState("2025-06-20");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const categories = [
+    "Kamar",
+    "Dapur",
+    "Kebersihan",
+    "Belajar",
+    "Elektronik",
+    "Lainnya",
+  ];
 
   const submit = (event: FormEvent) => {
-    event.preventDefault()
-    const nextErrors: Record<string, string> = {}
-    if (!name.trim()) nextErrors.name = 'Nama barang wajib diisi.'
-    if (!category) nextErrors.category = 'Pilih kategori barang.'
-    if (!price || Number(price) <= 0) nextErrors.price = 'Masukkan estimasi harga yang valid.'
-    if (!priority) nextErrors.priority = 'Pilih prioritas kebutuhan.'
-    if (!targetDate) nextErrors.targetDate = 'Target tanggal wajib diisi.'
-    setErrors(nextErrors)
-    if (Object.keys(nextErrors).length) return
-    onSave({ name: name.trim(), category, price: Number(price), priority: priority as ShoppingPriority, targetDate })
-  }
+    event.preventDefault();
+    const nextErrors: Record<string, string> = {};
+    if (!name.trim()) nextErrors.name = "Nama barang wajib diisi.";
+    if (!category) nextErrors.category = "Pilih kategori barang.";
+    if (!price || Number(price) <= 0)
+      nextErrors.price = "Masukkan estimasi harga yang valid.";
+    if (!priority) nextErrors.priority = "Pilih prioritas kebutuhan.";
+    if (!targetDate) nextErrors.targetDate = "Target tanggal wajib diisi.";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    onSave({
+      name: name.trim(),
+      category,
+      price: Number(price),
+      priority: priority as ShoppingPriority,
+      targetDate,
+    });
+  };
 
   return (
     <form onSubmit={submit} className="form-stack">
@@ -928,7 +1117,7 @@ function AddShoppingForm({
         label="Prioritas"
         value={priority}
         onChange={(value) => setPriority(value as ShoppingPriority)}
-        options={['Tinggi', 'Sedang', 'Rendah']}
+        options={["Tinggi", "Sedang", "Rendah"]}
         optionPlaceholder="Pilih prioritas"
         required
         error={errors.priority}
@@ -948,7 +1137,7 @@ function AddShoppingForm({
         <Button type="submit">Tambah</Button>
       </div>
     </form>
-  )
+  );
 }
 
 function ConfirmPurchaseForm({
@@ -956,21 +1145,21 @@ function ConfirmPurchaseForm({
   onCancel,
   onSave,
 }: {
-  item: ShoppingItem
-  onCancel: () => void
-  onSave: (actualPrice: number) => void
+  item: ShoppingItem;
+  onCancel: () => void;
+  onSave: (actualPrice: number) => void;
 }) {
-  const [actualPrice, setActualPrice] = useState(String(item.price))
-  const [error, setError] = useState('')
+  const [actualPrice, setActualPrice] = useState(String(item.price));
+  const [error, setError] = useState("");
 
   const submit = (event: FormEvent) => {
-    event.preventDefault()
+    event.preventDefault();
     if (!actualPrice || Number(actualPrice) <= 0) {
-      setError('Masukkan harga aktual yang valid.')
-      return
+      setError("Masukkan harga aktual yang valid.");
+      return;
     }
-    onSave(Number(actualPrice))
-  }
+    onSave(Number(actualPrice));
+  };
 
   return (
     <form onSubmit={submit} className="form-stack">
@@ -994,94 +1183,122 @@ function ConfirmPurchaseForm({
         <Button type="submit">Tandai dibeli</Button>
       </div>
     </form>
-  )
+  );
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('dashboard')
-  const [transactions, setTransactions] = useState(initialTransactions)
-  const [shoppingItems, setShoppingItems] = useState(initialShoppingItems)
-  const [sheet, setSheet] = useState<'quick' | 'income' | 'expense' | 'shopping' | 'purchase' | null>(null)
-  const [selectedShoppingId, setSelectedShoppingId] = useState<number | null>(null)
-  const [toast, setToast] = useState('')
-  const selectedShoppingItem = shoppingItems.find((item) => item.id === selectedShoppingId)
+  const [screen, setScreen] = useState<Screen>("dashboard");
+  const [transactions, setTransactions] = useState(initialTransactions);
+  const [shoppingItems, setShoppingItems] = useState(initialShoppingItems);
+  const [sheet, setSheet] = useState<
+    "quick" | "income" | "expense" | "shopping" | "purchase" | null
+  >(null);
+  const [selectedShoppingId, setSelectedShoppingId] = useState<number | null>(
+    null,
+  );
+  const [toast, setToast] = useState("");
+  const selectedShoppingItem = shoppingItems.find(
+    (item) => item.id === selectedShoppingId,
+  );
 
   const latestId = useMemo(
-    () => Math.max(...transactions.map((item) => item.id), ...shoppingItems.map((item) => item.id)) + 1,
+    () =>
+      Math.max(
+        ...transactions.map((item) => item.id),
+        ...shoppingItems.map((item) => item.id),
+      ) + 1,
     [transactions, shoppingItems],
-  )
+  );
 
   const showToast = (message: string) => {
-    setToast(message)
-    window.setTimeout(() => setToast(''), 2400)
-  }
+    setToast(message);
+    window.setTimeout(() => setToast(""), 2400);
+  };
 
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
-    setTransactions((current) => [...current, { ...transaction, id: latestId }])
-    setSheet(null)
-    setScreen('finance')
-    showToast(transaction.type === 'income' ? 'Pemasukan berhasil ditambahkan' : 'Pengeluaran berhasil ditambahkan')
-  }
+  const addTransaction = (transaction: Omit<Transaction, "id">) => {
+    setTransactions((current) => [
+      ...current,
+      { ...transaction, id: latestId },
+    ]);
+    setSheet(null);
+    setScreen("finance");
+    showToast(
+      transaction.type === "income"
+        ? "Pemasukan berhasil ditambahkan"
+        : "Pengeluaran berhasil ditambahkan",
+    );
+  };
 
-  const addShoppingItem = (item: Omit<ShoppingItem, 'id' | 'purchased'>) => {
-    setShoppingItems((current) => [...current, { ...item, id: latestId, purchased: false }])
-    setSheet(null)
-    showToast('Kebutuhan baru berhasil ditambahkan')
-  }
+  const addShoppingItem = (item: Omit<ShoppingItem, "id" | "purchased">) => {
+    setShoppingItems((current) => [
+      ...current,
+      { ...item, id: latestId, purchased: false },
+    ]);
+    setSheet(null);
+    showToast("Kebutuhan baru berhasil ditambahkan");
+  };
 
   return (
     <main className="app-shell">
       <div className="phone-frame">
         <div className="app-scroll">
-          {screen === 'dashboard' && (
+          {screen === "dashboard" && (
             <Dashboard
               transactions={transactions}
-              onOpenProfile={() => setScreen('profile')}
+              onOpenProfile={() => setScreen("profile")}
             />
           )}
-          {screen === 'list' && (
+          {screen === "list" && (
             <ShoppingList
               items={shoppingItems}
-              onAdd={() => setSheet('shopping')}
+              onAdd={() => setSheet("shopping")}
               onToggle={(item) => {
                 if (item.purchased) {
                   setShoppingItems((current) =>
                     current.map((currentItem) =>
                       currentItem.id === item.id
-                        ? { ...currentItem, purchased: false, actualPrice: undefined }
+                        ? {
+                            ...currentItem,
+                            purchased: false,
+                            actualPrice: undefined,
+                          }
                         : currentItem,
                     ),
-                  )
-                  showToast('Item dikembalikan ke daftar belum dibeli')
-                  return
+                  );
+                  showToast("Item dikembalikan ke daftar belum dibeli");
+                  return;
                 }
-                setSelectedShoppingId(item.id)
-                setSheet('purchase')
+                setSelectedShoppingId(item.id);
+                setSheet("purchase");
               }}
             />
           )}
-          {screen === 'finance' && <Finance transactions={transactions} />}
-          {screen === 'profile' && <Profile />}
+          {screen === "finance" && <Finance transactions={transactions} />}
+          {screen === "profile" && <Profile />}
         </div>
 
         <nav className="bottom-nav" aria-label="Navigasi utama">
           {navItems.slice(0, 2).map((item) => (
             <button
               key={item.id}
-              className={screen === item.id ? 'active' : ''}
+              className={screen === item.id ? "active" : ""}
               onClick={() => setScreen(item.id)}
             >
               <Icon name={item.icon} size={21} />
               <span>{item.label}</span>
             </button>
           ))}
-          <button className="plus-nav" onClick={() => setSheet('quick')} aria-label="Tambah transaksi">
+          <button
+            className="plus-nav"
+            onClick={() => setSheet("quick")}
+            aria-label="Tambah transaksi"
+          >
             <Icon name="plus" size={27} />
           </button>
           {navItems.slice(2).map((item) => (
             <button
               key={item.id}
-              className={screen === item.id ? 'active' : ''}
+              className={screen === item.id ? "active" : ""}
               onClick={() => setScreen(item.id)}
             >
               <Icon name={item.icon} size={21} />
@@ -1090,12 +1307,15 @@ export default function App() {
           ))}
         </nav>
 
-        {sheet === 'quick' && (
+        {sheet === "quick" && (
           <Sheet onClose={() => setSheet(null)}>
             <div className="quick-actions">
               <h2>Tambah transaksi</h2>
               <div className="quick-action-grid">
-                <button className="quick-action income-action" onClick={() => setSheet('income')}>
+                <button
+                  className="quick-action income-action"
+                  onClick={() => setSheet("income")}
+                >
                   <span>
                     <Icon name="arrow-down" />
                   </span>
@@ -1105,7 +1325,10 @@ export default function App() {
                   </div>
                   <Icon name="chevron" size={18} />
                 </button>
-                <button className="quick-action expense-action" onClick={() => setSheet('expense')}>
+                <button
+                  className="quick-action expense-action"
+                  onClick={() => setSheet("expense")}
+                >
                   <span>
                     <Icon name="arrow-up" />
                   </span>
@@ -1116,26 +1339,39 @@ export default function App() {
                   <Icon name="chevron" size={18} />
                 </button>
               </div>
-              <Button variant="secondary" className="wide-button" onClick={() => setSheet(null)}>
+              <Button
+                variant="secondary"
+                className="wide-button"
+                onClick={() => setSheet(null)}
+              >
                 Batal
               </Button>
             </div>
           </Sheet>
         )}
-        {(sheet === 'income' || sheet === 'expense') && (
+        {(sheet === "income" || sheet === "expense") && (
           <Sheet
-            title={sheet === 'income' ? 'Tambah Pemasukan' : 'Tambah Pengeluaran'}
+            title={
+              sheet === "income" ? "Tambah Pemasukan" : "Tambah Pengeluaran"
+            }
             onClose={() => setSheet(null)}
           >
-            <AddTransactionForm type={sheet} onCancel={() => setSheet(null)} onSave={addTransaction} />
+            <AddTransactionForm
+              type={sheet}
+              onCancel={() => setSheet(null)}
+              onSave={addTransaction}
+            />
           </Sheet>
         )}
-        {sheet === 'shopping' && (
+        {sheet === "shopping" && (
           <Sheet title="Tambah Kebutuhan" onClose={() => setSheet(null)}>
-            <AddShoppingForm onCancel={() => setSheet(null)} onSave={addShoppingItem} />
+            <AddShoppingForm
+              onCancel={() => setSheet(null)}
+              onSave={addShoppingItem}
+            />
           </Sheet>
         )}
-        {sheet === 'purchase' && selectedShoppingItem && (
+        {sheet === "purchase" && selectedShoppingItem && (
           <Sheet title="Konfirmasi Pembelian" onClose={() => setSheet(null)}>
             <ConfirmPurchaseForm
               item={selectedShoppingItem}
@@ -1143,12 +1379,14 @@ export default function App() {
               onSave={(actualPrice) => {
                 setShoppingItems((current) =>
                   current.map((item) =>
-                    item.id === selectedShoppingItem.id ? { ...item, purchased: true, actualPrice } : item,
+                    item.id === selectedShoppingItem.id
+                      ? { ...item, purchased: true, actualPrice }
+                      : item,
                   ),
-                )
-                setSelectedShoppingId(null)
-                setSheet(null)
-                showToast('Harga aktual disimpan dan item ditandai dibeli')
+                );
+                setSelectedShoppingId(null);
+                setSheet(null);
+                showToast("Harga aktual disimpan dan item ditandai dibeli");
               }}
             />
           </Sheet>
@@ -1156,5 +1394,5 @@ export default function App() {
         {toast && <div className="toast">{toast}</div>}
       </div>
     </main>
-  )
+  );
 }
