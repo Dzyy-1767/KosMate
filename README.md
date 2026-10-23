@@ -60,45 +60,36 @@ Aplikasi ini dibangun khusus dengan paradigma **mobile-first** karena kebutuhan 
 
 ---
 
-## 📁 Struktur Direktori Proyek
+## 📁 Struktur Direktori Proyek (Monorepo)
 
 ```text
 KosMate/
-├── src/
-│   ├── app/                 # Screen & routing mobile (Expo Router)
-│   │   ├── _layout.tsx      # Root native stack/tab layout
-│   │   ├── index.tsx        # Dashboard / Home Screen
-│   │   ├── budget.tsx       # Kelola Budget Screen
-│   │   ├── expenses.tsx     # Daftar Pengeluaran
-│   │   ├── expenses/add.tsx # Form Tambah Pengeluaran
-│   │   ├── needs.tsx        # Daftar Kebutuhan Kos (Shopping List)
-│   │   └── needs/add.tsx    # Form Tambah Kebutuhan Kos
-│   ├── components/          # Reusable Native Mobile UI Components
-│   │   ├── BudgetCard.tsx   # Kartu Hero Budget
-│   │   ├── ExpenseItem.tsx  # Item Baris Pengeluaran
-│   │   ├── NeedItem.tsx     # Item Checklist Kebutuhan Kos
-│   │   └── EmptyState.tsx   # Tampilan State Kosong
-│   ├── constants/           # Token Desain & Konstanta
-│   │   ├── colors.ts        # Color Palette Design System
-│   │   ├── typography.ts    # Typographic scales
-│   │   ├── spacing.ts       # Spacing tokens
-│   │   └── categories.ts    # Kategori pengeluaran default
-│   ├── storage/             # Layanan AsyncStorage (Offline-first)
-│   │   ├── budgetStorage.ts
-│   │   ├── expenseStorage.ts
-│   │   └── needStorage.ts
-│   ├── types/               # Definisi Interface & Tipe TypeScript
-│   │   ├── budget.ts
-│   │   ├── expense.ts
-│   │   └── need.ts
-│   └── utils/               # Helper Utility (Perhitungan & Format Mata Uang)
-│       ├── calculation.ts
-│       └── currency.ts
-├── PRD/                     # Product Requirements Document
-├── Design/                  # Design Brief & Color Guidelines
-├── app.json                 # Konfigurasi Native Expo App
-├── package.json             # Dependensi proyek mobile
-└── README.md                # Dokumentasi proyek
+├── frontend/                # Aplikasi Mobile (React Native + Expo SDK 57)
+│   ├── src/
+│   │   ├── app/             # Screen & routing mobile (Expo Router)
+│   │   │   ├── _layout.tsx  # Root native stack layout
+│   │   │   ├── (tabs)/      # Bottom tab navigation screens
+│   │   │   ├── expenses/    # Detail & form pengeluaran
+│   │   │   ├── needs/       # Detail & form kebutuhan belanja
+│   │   │   ├── login.tsx    # Halaman Login
+│   │   │   └── register.tsx # Halaman Register
+│   │   ├── components/      # Reusable Native UI Components
+│   │   ├── context/         # KosMateContext & Global State
+│   │   └── storage/         # Layanan AsyncStorage (Offline-first)
+│   ├── app.json             # Konfigurasi Expo
+│   └── package.json
+│
+├── backend/                 # Service REST API (Node.js + Express + TypeScript)
+│   ├── src/
+│   │   ├── controllers/     # Controller Auth, Transaksi, Kebutuhan
+│   │   ├── database/        # Skema SQL (schema.sql & seed.sql)
+│   │   ├── middleware/      # Auth & Error handling
+│   │   ├── models/          # Type & Interface DTO
+│   │   ├── routes/          # API v1 Endpoints
+│   │   └── server.ts        # Entry point server (Port 5000)
+│   └── package.json
+│
+└── package.json             # Root monorepo manager
 ```
 
 ---
