@@ -25,11 +25,19 @@ export default function ExpenseDetailScreen() {
 
   const tx = transactions.find((item) => item.id === id);
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)');
+    }
+  };
+
   const confirmDelete = async () => {
     if (!id) return;
     setShowDeleteModal(false);
     await deleteTransaction(id);
-    router.back();
+    handleBack();
   };
 
   if (!tx) {
@@ -39,7 +47,7 @@ export default function ExpenseDetailScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={handleBack}
             accessibilityLabel="Kembali"
           >
             <Feather name="arrow-left" size={22} color={COLORS.primary} />
@@ -56,7 +64,7 @@ export default function ExpenseDetailScreen() {
           </Text>
           <TouchableOpacity
             style={styles.primaryActionButton}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <Feather name="arrow-left" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={styles.primaryActionText}>Kembali ke Keuangan</Text>
@@ -76,7 +84,7 @@ export default function ExpenseDetailScreen() {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={handleBack}
           accessibilityLabel="Kembali"
         >
           <Feather name="arrow-left" size={22} color={COLORS.primary} />
@@ -177,7 +185,7 @@ export default function ExpenseDetailScreen() {
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={styles.primaryActionButton}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <Feather name="arrow-left" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={styles.primaryActionText}>Kembali ke Keuangan</Text>

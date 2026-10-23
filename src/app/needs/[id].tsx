@@ -29,10 +29,18 @@ export default function NeedDetailScreen() {
 
   const item = shoppingItems.find((s) => s.id === id);
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/needs');
+    }
+  };
+
   const confirmDelete = () => {
     if (!id) return;
     setShowDeleteModal(false);
-    router.back();
+    handleBack();
     setTimeout(() => {
       deleteShoppingItem(id);
     }, 100);
@@ -74,7 +82,7 @@ export default function NeedDetailScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={handleBack}
             accessibilityLabel="Kembali"
           >
             <Feather name="arrow-left" size={22} color={COLORS.primary} />
@@ -91,7 +99,7 @@ export default function NeedDetailScreen() {
           </Text>
           <TouchableOpacity
             style={styles.primaryActionButton}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <Feather name="arrow-left" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={styles.primaryActionText}>Kembali ke Daftar Kebutuhan</Text>
@@ -123,7 +131,7 @@ export default function NeedDetailScreen() {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={handleBack}
           accessibilityLabel="Kembali"
         >
           <Feather name="arrow-left" size={22} color={COLORS.primary} />
@@ -271,7 +279,7 @@ export default function NeedDetailScreen() {
 
           <TouchableOpacity
             style={styles.backActionButton}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <Feather name="arrow-left" size={18} color={COLORS.primary} style={{ marginRight: 8 }} />
             <Text style={styles.backActionText}>Kembali ke Daftar Kebutuhan</Text>
