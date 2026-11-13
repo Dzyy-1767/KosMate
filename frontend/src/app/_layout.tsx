@@ -94,6 +94,7 @@ export default function RootLayout() {
                 headerShown: false,
               }}
             />
+            <Stack.Screen name="promise-lab" options={{ headerShown: false }} />
           </Stack>
         </AuthGuard>
         <QuickActionModal />

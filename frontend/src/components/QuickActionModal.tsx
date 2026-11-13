@@ -13,8 +13,10 @@ import {
 } from 'react-native';
 
 import { COLORS } from '../constants/colors';
+import { DatePickerField } from './DatePickerField';
 import { useKosMate } from '../context/KosMateContext';
 import type { TransactionType } from '../types/expense';
+import { getLocalDateString, isValidDateString } from '../utils/date';
 
 const EXPENSE_CATEGORIES = [
   'Makanan',
@@ -32,7 +34,7 @@ export function QuickActionModal() {
   const { quickSheet, closeQuickSheet, openQuickSheet, addTransaction } = useKosMate();
 
   const [amount, setAmount] = useState('');
-  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(getLocalDateString);
   const [note, setNote] = useState('');
   const [category, setCategory] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export function QuickActionModal() {
 
   const resetForm = () => {
     setAmount('');
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(getLocalDateString());
     setNote('');
     setCategory('');
     setError(null);
@@ -61,6 +63,10 @@ export function QuickActionModal() {
       setError('Masukkan nominal yang valid.');
       return;
     }
+    if (!isValidDateString(date.trim())) {
+      setError('Tanggal tidak valid. Gunakan format YYYY-MM-DD.');
+      return;
+    }
     if (type === 'expense' && !category) {
       setError('Pilih kategori pengeluaran.');
       return;
@@ -73,7 +79,7 @@ export function QuickActionModal() {
     await addTransaction({
       type,
       amount: numAmount,
-      date: date || new Date().toISOString().split('T')[0],
+      date: date.trim(),
       note: note.trim() || (type === 'income' ? 'Pemasukan' : 'Pengeluaran'),
       category: category || (type === 'income' ? 'Keluarga' : 'Lainnya'),
     });
@@ -203,13 +209,13 @@ export function QuickActionModal() {
 
               {/* Tanggal */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Tanggal (YYYY-MM-DD) *</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#AAA5B0"
+                <Text style={styles.fieldLabel}>Tanggal transaksi *</Text>
+                <DatePickerField
                   value={date}
-                  onChangeText={setDate}
+                  onChange={(value) => {
+                    setDate(value);
+                    setError(null);
+                  }}
                 />
               </View>
 

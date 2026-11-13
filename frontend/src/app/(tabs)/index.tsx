@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { COLORS } from '@/constants/colors';
 import { useKosMate } from '@/context/KosMateContext';
+import { getCurrentMonthKey, getMonthlyFinanceSummary } from '@/utils/monthlyBudget';
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -17,7 +18,12 @@ function formatRupiah(amount: number): string {
 }
 
 function formatShortRupiah(amount: number): string {
-  return `Rp${new Intl.NumberFormat('id-ID').format(amount)}`;
+  return formatRupiah(amount);
+}
+
+function formatCurrentMonth(date = new Date()): string {
+  const month = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(date);
+  return `${month.charAt(0).toUpperCase()}${month.slice(1)}`;
 }
 
 function formatDate(dateStr: string): string {
@@ -32,42 +38,52 @@ function formatDate(dateStr: string): string {
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { transactions, monthlyBudget, profile } = useKosMate();
+  const { transactions, profile } = useKosMate();
 
-  const expenses = transactions.filter((item) => item.type === 'expense');
-  const spent = expenses.reduce((sum, item) => sum + item.amount, 0);
-  const remaining = monthlyBudget - spent;
-  const ratio = monthlyBudget > 0 ? remaining / monthlyBudget : 0;
-  const progressPercent = monthlyBudget > 0 ? Math.min(100, Math.round((spent / monthlyBudget) * 100)) : 0;
+  const { income, budget, spent, remaining } = getMonthlyFinanceSummary(transactions);
+  const currentMonth = getCurrentMonthKey();
+  const monthTransactions = transactions.filter((item) => item.date.startsWith(currentMonth));
+  const expenses = monthTransactions.filter((item) => item.type === 'expense');
+  const ratio = budget > 0 ? remaining / budget : 0;
+  const progressPercent = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
 
   // Insight calculation
   const insight =
-    ratio > 0.45
+    income === 0
       ? {
-          status: 'Aman',
-          color: COLORS.success,
-          bgColor: '#EAF4EE',
-          borderColor: '#D8EADF',
-          title: 'Keuanganmu masih terkendali',
-          text: 'Pengeluaranmu masih dalam batas sehat. Pertahankan ritme ini sampai akhir bulan.',
+          status: 'Belum ada data',
+          color: '#8E8A99',
+          bgColor: '#F5F3F8',
+          borderColor: '#E6E2EA',
+          title: 'Belum ada transaksi bulan ini',
+          text: 'Tambahkan pemasukan atau pengeluaran untuk mulai melacak keuanganmu.',
         }
-      : ratio > 0.2
+      : ratio > 0.45
         ? {
-            status: 'Kurang Aman',
-            color: COLORS.warning,
-            bgColor: '#FFF6E9',
-            borderColor: '#F1DFC8',
-            title: 'Saatnya lebih berhati-hati',
-            text: 'Kurangi pengeluaran tidak penting agar anggaranmu cukup sampai akhir bulan.',
+            status: 'Aman',
+            color: COLORS.success,
+            bgColor: '#EAF4EE',
+            borderColor: '#D8EADF',
+            title: 'Keuanganmu masih terkendali',
+            text: 'Pengeluaranmu masih dalam batas sehat. Pertahankan ritme ini sampai akhir bulan.',
           }
-        : {
-            status: 'Tidak Aman',
-            color: COLORS.error,
-            bgColor: '#FFEBEA',
-            borderColor: '#FFCDD2',
-            title: 'Anggaranmu hampir habis',
-            text: 'Prioritaskan kebutuhan utama dan hentikan pengeluaran impulsif untuk sementara.',
-          };
+        : ratio > 0.2
+          ? {
+              status: 'Kurang Aman',
+              color: COLORS.warning,
+              bgColor: '#FFF6E9',
+              borderColor: '#F1DFC8',
+              title: 'Saatnya lebih berhati-hati',
+              text: 'Kurangi pengeluaran tidak penting agar anggaranmu cukup sampai akhir bulan.',
+            }
+          : {
+              status: 'Tidak Aman',
+              color: COLORS.error,
+              bgColor: '#FFEBEA',
+              borderColor: '#FFCDD2',
+              title: 'Anggaranmu hampir habis',
+              text: 'Prioritaskan kebutuhan utama dan hentikan pengeluaran impulsif untuk sementara.',
+            };
 
   // Top 3 expense categories
   const categoryTotals = expenses.reduce<Record<string, number>>((acc, item) => {
@@ -80,7 +96,7 @@ export default function DashboardScreen() {
     .slice(0, 3);
 
   // Recent 3 transactions
-  const recentTransactions = transactions
+  const recentTransactions = monthTransactions
     .slice()
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
     .slice(0, 3);
@@ -131,7 +147,7 @@ export default function DashboardScreen() {
         <TouchableOpacity
           style={styles.avatarButton}
           activeOpacity={0.8}
-          onPress={() => router.push('/budget')}
+          onPress={() => router.push('/profile')}
           accessibilityLabel="Buka profil"
         >
           <Text style={styles.avatarText}>{initials}</Text>
@@ -142,11 +158,11 @@ export default function DashboardScreen() {
       <View style={styles.budgetCard}>
         <View style={styles.budgetTop}>
           <View>
-            <Text style={styles.budgetSubtitle}>Anggaran bulan ini</Text>
-            <Text style={styles.budgetAmount}>{formatRupiah(monthlyBudget)}</Text>
+            <Text style={styles.budgetSubtitle}>Anggaran dari pemasukan</Text>
+            <Text style={styles.budgetAmount}>{formatRupiah(budget)}</Text>
           </View>
           <View style={styles.monthPill}>
-            <Text style={styles.monthPillText}>Juni 2025</Text>
+            <Text style={styles.monthPillText}>{formatCurrentMonth()}</Text>
           </View>
         </View>
 
@@ -162,14 +178,23 @@ export default function DashboardScreen() {
 
         {/* Stats Row */}
         <View style={styles.budgetStatsRow}>
-          <View>
-            <Text style={styles.statLabel}>Terpakai</Text>
-            <Text style={styles.statValueSpent}>{formatShortRupiah(spent)}</Text>
+          <View style={styles.budgetStat}>
+            <Text style={styles.statLabel}>Pemasukan</Text>
+            <Text style={styles.statValueSpent} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+              {formatShortRupiah(income)}
+            </Text>
           </View>
-          <View style={styles.statDivider} />
-          <View>
+          <View style={styles.budgetStat}>
+            <Text style={styles.statLabel}>Terpakai</Text>
+            <Text style={styles.statValueSpent} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+              {formatShortRupiah(spent)}
+            </Text>
+          </View>
+          <View style={styles.budgetStat}>
             <Text style={styles.statLabel}>Sisa anggaran</Text>
-            <Text style={styles.statValueRemaining}>{formatShortRupiah(remaining)}</Text>
+            <Text style={styles.statValueRemaining} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+              {formatShortRupiah(remaining)}
+            </Text>
           </View>
         </View>
       </View>
@@ -192,9 +217,9 @@ export default function DashboardScreen() {
       </View>
 
       {/* ─── Pengeluaran Terbesar ──────────────────────────────────── */}
-      {sortedCategories.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pengeluaran terbesar</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Pengeluaran terbesar bulan ini</Text>
+        {sortedCategories.length > 0 ? (
           <View style={styles.categoryTilesRow}>
             {sortedCategories.map(([catName, catAmount], idx) => {
               const iconName = getCategoryIcon(catName);
@@ -210,30 +235,50 @@ export default function DashboardScreen() {
                   <Text style={styles.catPercentBadge}>{percent}%</Text>
                   <Text style={styles.catName} numberOfLines={1}>{catName}</Text>
                   <Text style={styles.catAmount}>{formatShortRupiah(catAmount)}</Text>
-                  <Text style={styles.catNote}>dari pengeluaran</Text>
+                  <Text style={styles.catNote}>dari total pengeluaran</Text>
                 </View>
               );
             })}
           </View>
-        </View>
-      )}
+        ) : (
+          <View style={styles.categoryTilesRow}>
+            {(['Makanan', 'Transportasi', 'Belanja'] as const).map((catName, idx) => {
+              const iconName = getCategoryIcon(catName);
+              const toneBg = idx === 0 ? '#FAF0E6' : idx === 1 ? '#F0F4FA' : '#F5F0FA';
+              const iconColor = idx === 0 ? '#E06D53' : idx === 1 ? '#3F51B5' : '#7E57C2';
+              return (
+                <View key={catName} style={[styles.categoryTile, styles.categoryTileEmpty]}>
+                  <View style={[styles.catIconWrap, { backgroundColor: toneBg }]}>
+                    <Feather name={iconName} size={20} color={iconColor} />
+                  </View>
+                  <Text style={styles.catPercentBadge}>0%</Text>
+                  <Text style={styles.catName} numberOfLines={1}>{catName}</Text>
+                  <Text style={styles.catAmount}>{formatShortRupiah(0)}</Text>
+                  <Text style={styles.catNote}>dari total pengeluaran</Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
 
       {/* ─── Transaksi Terbaru ───────────────────────────────────── */}
-      <View style={[styles.section, { marginTop: 24 }]}>
+      <View style={styles.section}>
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Transaksi terbaru</Text>
-          <TouchableOpacity onPress={() => router.push('/expenses')}>
-            <Text style={styles.actionText}>Lihat Semua</Text>
+          <Text style={[styles.sectionTitle, styles.sectionTitleInHeader]}>Transaksi terbaru</Text>
+          <TouchableOpacity
+            style={styles.viewAllButton}
+            onPress={() => router.push('/expenses')}
+            accessibilityRole="button"
+          >
+            <Text style={styles.actionText}>Lihat semua</Text>
+            <Feather name="chevron-right" size={16} color={COLORS.secondary} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.listCard}>
-          {recentTransactions.length === 0 ? (
-            <View style={styles.emptyList}>
-              <Text style={styles.emptyListText}>Belum ada transaksi bulan ini.</Text>
-            </View>
-          ) : (
-            recentTransactions.map((tx) => {
+        {recentTransactions.length > 0 ? (
+          <View style={styles.listCard}>
+            {recentTransactions.map((tx) => {
               const isIncome = tx.type === 'income';
               const iconName = isIncome ? 'arrow-down-left' : getCategoryIcon(tx.category);
 
@@ -272,10 +317,24 @@ export default function DashboardScreen() {
                   </Text>
                 </TouchableOpacity>
               );
-            })
-          )}
-        </View>
+            })}
+          </View>
+        ) : (
+          <View style={styles.listCard}>
+            <View style={[styles.txRow, styles.txRowEmpty]}>
+              <View style={[styles.txIconBox, styles.txIconExpense]}>
+                <Feather name="inbox" size={18} color={COLORS.secondary} />
+              </View>
+              <View style={styles.txMain}>
+                <Text style={styles.txNoteEmpty}>Belum ada transaksi</Text>
+                <Text style={styles.txSub}>Bulan ini · —</Text>
+              </View>
+              <Text style={styles.txAmountEmpty}>{formatShortRupiah(0)}</Text>
+            </View>
+          </View>
+        )}
       </View>
+
     </ScrollView>
   );
 }
@@ -293,7 +352,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   greetingTitle: {
     fontSize: 26,
@@ -322,7 +381,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderRadius: 24,
     padding: 22,
-    marginBottom: 16,
+    marginBottom: 24,
     shadowColor: '#312C51',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.28,
@@ -373,34 +432,39 @@ const styles = StyleSheet.create({
   },
   budgetStatsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 4,
+    alignItems: 'stretch',
+    gap: 10,
+    paddingTop: 2,
+  },
+  budgetStat: {
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: 11,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#B9B5C2',
-    marginBottom: 3,
+    marginBottom: 6,
   },
   statValueSpent: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
   },
   statValueRemaining: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.peach,
-  },
-  statDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   insightCard: {
     borderRadius: 18,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 24,
     borderWidth: 1,
   },
   insightBadge: {
@@ -435,7 +499,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   section: {
-    marginBottom: 8,
+    marginBottom: 24,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -448,6 +512,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.primary,
     marginBottom: 12,
+  },
+  sectionTitleInHeader: { marginBottom: 0 },
+  emptyStateCard: {
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#ECE8E3',
+    padding: 16,
+  },
+  emptyStateText: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'left',
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingVertical: 4,
+    paddingLeft: 8,
   },
   actionText: {
     fontSize: 13,
@@ -471,6 +557,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
+  },
+  categoryTileEmpty: {
+    opacity: 0.55,
   },
   catIconWrap: {
     width: 40,
@@ -522,6 +611,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F5F3F0',
   },
+  txRowEmpty: {
+    borderBottomWidth: 0,
+    opacity: 0.55,
+  },
   txIconBox: {
     width: 42,
     height: 42,
@@ -560,12 +653,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#E06D53',
   },
-  emptyList: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  emptyListText: {
+  txNoteEmpty: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    fontWeight: '600',
+    color: '#B9B5C2',
+    marginBottom: 3,
+  },
+  txAmountEmpty: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#B9B5C2',
   },
 });

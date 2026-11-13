@@ -25,71 +25,8 @@ const SEED_TRANSACTIONS: Transaction[] = [
   { id: '8', type: 'expense', amount: 129000, date: '2025-06-13', note: 'Internet kos', category: 'Tagihan', createdAt: '2025-06-13T16:00:00Z' },
 ];
 
-const SEED_NEEDS: ShoppingItem[] = [
-  {
-    id: '1',
-    name: 'Rak sepatu minimalis',
-    category: 'Kamar',
-    price: 185000,
-    purchased: false,
-    priority: 'Tinggi',
-    targetDate: '2025-06-16',
-    createdAt: '2025-06-01T00:00:00Z',
-  },
-  {
-    id: '2',
-    name: 'Deterjen & pewangi',
-    category: 'Kebersihan',
-    price: 72000,
-    purchased: false,
-    priority: 'Sedang',
-    targetDate: '2025-06-18',
-    createdAt: '2025-06-02T00:00:00Z',
-  },
-  {
-    id: '3',
-    name: 'Lampu meja belajar',
-    category: 'Belajar',
-    price: 149000,
-    purchased: false,
-    priority: 'Rendah',
-    targetDate: '2025-06-25',
-    createdAt: '2025-06-03T00:00:00Z',
-  },
-  {
-    id: '4',
-    name: 'Galon air mineral',
-    category: 'Dapur',
-    price: 23000,
-    actualPrice: 22000,
-    purchased: true,
-    priority: 'Tinggi',
-    targetDate: '2025-06-12',
-    createdAt: '2025-06-04T00:00:00Z',
-  },
-  {
-    id: '5',
-    name: 'Gantungan baju',
-    category: 'Kamar',
-    price: 48000,
-    actualPrice: 45000,
-    purchased: true,
-    priority: 'Sedang',
-    targetDate: '2025-06-10',
-    createdAt: '2025-06-05T00:00:00Z',
-  },
-  {
-    id: '6',
-    name: 'Kotak penyimpanan',
-    category: 'Kamar',
-    price: 89000,
-    actualPrice: 92000,
-    purchased: true,
-    priority: 'Rendah',
-    targetDate: '2025-06-08',
-    createdAt: '2025-06-06T00:00:00Z',
-  },
-];
+// KONSEP #1: ID ini hanya milik data contoh lama, bukan ID dari item buatan pengguna.
+const LEGACY_SEED_NEED_IDS = new Set(['1', '2', '3', '4', '5', '6']);
 
 export type UserProfile = {
   name: string;
@@ -148,7 +85,7 @@ const KosMateContext = createContext<KosMateContextType | null>(null);
 export function KosMateProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = loading
   const [transactions, setTransactions] = useState<Transaction[]>(SEED_TRANSACTIONS);
-  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(SEED_NEEDS);
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const [monthlyBudget, setMonthlyBudget] = useState<number>(DEFAULT_BUDGET);
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [toast, setToast] = useState<string | null>(null);
@@ -171,9 +108,15 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
 
         const storedNeeds = await AsyncStorage.getItem(STORAGE_KEYS.NEEDS);
         if (storedNeeds) {
-          setShoppingItems(JSON.parse(storedNeeds));
+          const parsedNeeds = JSON.parse(storedNeeds) as ShoppingItem[];
+          const userNeeds = parsedNeeds.filter((item) => !LEGACY_SEED_NEED_IDS.has(item.id));
+          setShoppingItems(userNeeds);
+          if (userNeeds.length !== parsedNeeds.length) {
+            // KONSEP #2: Bersihkan item contoh lama sekali saja dan pertahankan item buatan pengguna.
+            await AsyncStorage.setItem(STORAGE_KEYS.NEEDS, JSON.stringify(userNeeds));
+          }
         } else {
-          await AsyncStorage.setItem(STORAGE_KEYS.NEEDS, JSON.stringify(SEED_NEEDS));
+          await AsyncStorage.setItem(STORAGE_KEYS.NEEDS, JSON.stringify([]));
         }
 
         const storedBudget = await AsyncStorage.getItem(STORAGE_KEYS.BUDGET);

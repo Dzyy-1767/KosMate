@@ -98,7 +98,7 @@ Base URL: `http://localhost:5000/api/v1`
 
 ## 🗄️ Skema Database (SQL)
 
-Dapat dilihat pada file [`src/database/schema.sql`](file:///c:/Users/waode/KosMate/backend/src/database/schema.sql) yang mencakup 4 tabel utama:
+Dapat dilihat pada file [`src/database/schema.sql`](src/database/schema.sql) yang mencakup 4 tabel utama:
 1. `users`: Akun anak kos, kontak, nomor kamar, dan batas anggaran bulanan.
 2. `categories`: Kategori default (Makan, Kos, Transport, Tagihan, Laundry, dll.).
 3. `transactions`: Catatan pengeluaran & pemasukan harian.

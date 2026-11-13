@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants/colors';
 import { useKosMate } from '@/context/KosMateContext';
 import type { Transaction } from '@/types/expense';
+import { getCurrentMonthKey, getMonthlyFinanceSummary } from '@/utils/monthlyBudget';
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -18,7 +19,7 @@ function formatRupiah(amount: number): string {
 }
 
 function formatShortRupiah(amount: number): string {
-  return `Rp${new Intl.NumberFormat('id-ID').format(amount)}`;
+  return formatRupiah(amount);
 }
 
 function formatDate(dateStr: string): string {
@@ -34,20 +35,21 @@ export default function FinanceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { transactions } = useKosMate();
+  const { income: totalIncome, spent: totalExpense, netBalance } =
+    getMonthlyFinanceSummary(transactions);
+  const currentMonth = getCurrentMonthKey();
+  const monthLabel = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date());
+  const formattedMonthLabel = `${monthLabel.charAt(0).toUpperCase()}${monthLabel.slice(1)}`;
 
   const [expandedSection, setExpandedSection] = useState<'income' | 'expense' | null>(null);
 
   const incomeList = transactions
-    .filter((t) => t.type === 'income')
+    .filter((t) => t.type === 'income' && t.date.startsWith(currentMonth))
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
 
   const expenseList = transactions
-    .filter((t) => t.type === 'expense')
+    .filter((t) => t.type === 'expense' && t.date.startsWith(currentMonth))
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
-
-  const totalIncome = incomeList.reduce((sum, item) => sum + item.amount, 0);
-  const totalExpense = expenseList.reduce((sum, item) => sum + item.amount, 0);
-  const actualBalance = totalIncome - totalExpense;
 
   const displayedIncome =
     expandedSection === 'income' ? incomeList : incomeList.slice(0, 3);
@@ -126,7 +128,7 @@ export default function FinanceScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Keuangan</Text>
         <View style={styles.monthPill}>
-          <Text style={styles.monthPillText}>Juni 2025</Text>
+          <Text style={styles.monthPillText}>{formattedMonthLabel}</Text>
         </View>
       </View>
 
@@ -137,7 +139,7 @@ export default function FinanceScreen() {
           <View style={[styles.summaryIconBox, { backgroundColor: '#EAF4EE' }]}>
             <Feather name="arrow-down-left" size={18} color={COLORS.success} />
           </View>
-          <Text style={styles.summaryLabel}>Total pemasukan</Text>
+          <Text style={styles.summaryLabel}>Pemasukan bulan ini</Text>
           <Text style={styles.incomeAmountText}>{formatShortRupiah(totalIncome)}</Text>
         </View>
 
@@ -146,7 +148,7 @@ export default function FinanceScreen() {
           <View style={[styles.summaryIconBox, { backgroundColor: '#FFF0ED' }]}>
             <Feather name="arrow-up-right" size={18} color="#E06D53" />
           </View>
-          <Text style={styles.summaryLabel}>Total pengeluaran</Text>
+          <Text style={styles.summaryLabel}>Pengeluaran bulan ini</Text>
           <Text style={styles.expenseAmountText}>{formatShortRupiah(totalExpense)}</Text>
         </View>
       </View>
@@ -159,8 +161,8 @@ export default function FinanceScreen() {
         style={styles.balanceCard}
       >
         <View>
-          <Text style={styles.balanceLabel}>Uang aktual tersisa</Text>
-          <Text style={styles.balanceAmount}>{formatRupiah(actualBalance)}</Text>
+          <Text style={styles.balanceLabel}>Saldo bersih bulan ini</Text>
+          <Text style={styles.balanceAmount}>{formatRupiah(netBalance)}</Text>
         </View>
         <View style={styles.balanceIconCircle}>
           <Feather name="credit-card" size={24} color={COLORS.peach} />
@@ -186,7 +188,7 @@ export default function FinanceScreen() {
       <View style={styles.cardContainer}>
         {incomeList.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>Belum ada pemasukan tercatat.</Text>
+            <Text style={styles.emptyText}>Belum ada pemasukan bulan ini.</Text>
           </View>
         ) : (
           displayedIncome.map(renderTransactionRow)
@@ -212,7 +214,7 @@ export default function FinanceScreen() {
       <View style={styles.cardContainer}>
         {expenseList.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>Belum ada pengeluaran tercatat.</Text>
+            <Text style={styles.emptyText}>Belum ada pengeluaran bulan ini.</Text>
           </View>
         ) : (
           displayedExpense.map(renderTransactionRow)

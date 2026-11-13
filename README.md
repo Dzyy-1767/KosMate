@@ -60,36 +60,30 @@ Aplikasi ini dibangun khusus dengan paradigma **mobile-first** karena kebutuhan 
 
 ---
 
-## 📁 Struktur Direktori Proyek (Monorepo)
+## 📁 Struktur Direktori Proyek
 
 ```text
 KosMate/
-├── frontend/                # Aplikasi Mobile (React Native + Expo SDK 57)
-│   ├── src/
-│   │   ├── app/             # Screen & routing mobile (Expo Router)
-│   │   │   ├── _layout.tsx  # Root native stack layout
-│   │   │   ├── (tabs)/      # Bottom tab navigation screens
-│   │   │   ├── expenses/    # Detail & form pengeluaran
-│   │   │   ├── needs/       # Detail & form kebutuhan belanja
-│   │   │   ├── login.tsx    # Halaman Login
-│   │   │   └── register.tsx # Halaman Register
-│   │   ├── components/      # Reusable Native UI Components
-│   │   ├── context/         # KosMateContext & Global State
-│   │   └── storage/         # Layanan AsyncStorage (Offline-first)
-│   ├── app.json             # Konfigurasi Expo
+├── frontend/                 # Aplikasi mobile (React Native + Expo)
+│   ├── src/app/               # Screen dan route Expo Router
+│   ├── src/components/        # Komponen UI
+│   ├── src/context/           # State aplikasi
+│   ├── src/storage/           # Penyimpanan lokal
 │   └── package.json
-│
-├── backend/                 # Service REST API (Node.js + Express + TypeScript)
-│   ├── src/
-│   │   ├── controllers/     # Controller Auth, Transaksi, Kebutuhan
-│   │   ├── database/        # Skema SQL (schema.sql & seed.sql)
-│   │   ├── middleware/      # Auth & Error handling
-│   │   ├── models/          # Type & Interface DTO
-│   │   ├── routes/          # API v1 Endpoints
-│   │   └── server.ts        # Entry point server (Port 5000)
+├── backend/                   # REST API (Node.js + Express + TypeScript)
+│   ├── src/config/
+│   ├── src/controllers/
+│   ├── src/database/
+│   ├── src/middleware/
+│   ├── src/models/
+│   ├── src/routes/
 │   └── package.json
-│
-└── package.json             # Root monorepo manager
+├── prototypes/
+│   └── figma-make-app/        # Prototipe web Vite, terpisah dari aplikasi mobile
+├── Design/                    # Dokumen desain
+├── PRD/                       # Product requirements
+├── scripts/                   # Script utilitas
+└── package.json               # Script praktis tingkat repository
 ```
 
 ---
@@ -100,14 +94,33 @@ KosMate/
 - **Node.js** (LTS disarankan)
 - Aplikasi **Expo Go** terpasang di smartphone Android (via Google Play Store) atau iOS (via App Store), **atau** emulator Android Studio / simulator iOS.
 
-### 1. Instalasi Dependensi
+Setiap aplikasi memiliki dependensi dan lockfile sendiri; jalankan perintah
+dari folder proyek yang sesuai.
+
+### Aplikasi Mobile
+
 ```bash
-npm install
+cd frontend
+npm ci
+npm run start
 ```
 
-### 2. Menjalankan Server Pengembangan Expo
+### Backend (opsional)
+
 ```bash
-npx expo start
+cd backend
+npm ci
+npm run dev
+```
+
+### Prototipe Web (opsional)
+
+Panduan khusus juga tersedia di [`prototypes/figma-make-app/README.md`](prototypes/figma-make-app/README.md).
+
+```bash
+cd prototypes/figma-make-app
+npm ci
+npm run dev
 ```
 
 ### 3. Membuka di Perangkat Mobile
@@ -131,3 +144,15 @@ npx expo start
 
 ## 📄 Lisensi & Tim Pengembang
 Dikembangkan untuk kebutuhan proyek praktikum **Pemrograman Mobile** — KosMate Team.
+
+## 🧭 Pemetaan Konsep Asynchronous
+
+| Konsep | File | Implementasi |
+|---|---|---|
+| **#1 — Data API ke interface** | `frontend/src/types/market.ts`, `frontend/src/utils/marketMapper.ts`, `frontend/src/config/api.ts` | Interface model, tipe respons mentah, mapper, URL API, dan data harga pangan simulasi. |
+| **#2 — Async function** | `frontend/src/services/marketApi.ts`, `frontend/src/app/(tabs)/market.tsx` | Kurs dari API, `async/await`, penanganan error, cache AsyncStorage 30 menit, tampilan offline, dan `Promise.all`. |
+| **#3 — Promise manual** | `frontend/src/services/transfer.ts`, `frontend/src/app/promise-lab.tsx` | `new Promise`, `resolve`, `reject`, `setTimeout`, aturan biaya transfer, serta rantai `.then().catch().finally()`. |
+| **#4 — Perbandingan Promise** | `frontend/src/app/promise-lab.tsx` | Log proses dan pengukuran `Promise.all` dibanding `await` berurutan. |
+| **Rekomendasi belanja hemat** | `frontend/src/app/(tabs)/recommendations.tsx` | Menyusun kebutuhan yang muat anggaran berdasarkan prioritas, lalu menampilkan harga contoh lokal dan tips hemat berbahasa Indonesia. |
+
+Urutan tab: **Dashboard → List → Hemat → tambah → Keuangan → Info → Profil**. Tab Info menampilkan kurs IDR dari API dan harga pangan contoh lokal. Tips hemat ditulis dalam Bahasa Indonesia di tab Hemat; integrasi Advice Slip dan tombol Promise Lab telah dihapus dari alur utama. Data harga pangan tetap berupa contoh sampai tersedia akses API harga pangan dengan mekanisme penyimpanan API key yang aman.

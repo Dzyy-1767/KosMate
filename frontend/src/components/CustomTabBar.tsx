@@ -14,8 +14,8 @@ export function CustomTabBar({ state, descriptors, navigation }: CustomTabBarPro
   const insets = useSafeAreaInsets();
   const { openQuickSheet } = useKosMate();
 
-  const leftRoutes = state.routes.filter((r) => r.name === 'index' || r.name === 'needs');
-  const rightRoutes = state.routes.filter((r) => r.name === 'expenses' || r.name === 'budget');
+  const leftRoutes = state.routes.filter((r) => r.name === 'index' || r.name === 'needs' || r.name === 'recommendations');
+  const rightRoutes = state.routes.filter((r) => r.name === 'expenses' || r.name === 'market' || r.name === 'profile');
 
   const renderTabButton = (route: (typeof state.routes)[0]) => {
     const isFocused = state.routes[state.index]?.key === route.key;
@@ -31,12 +31,18 @@ export function CustomTabBar({ state, descriptors, navigation }: CustomTabBarPro
     } else if (route.name === 'needs') {
       label = 'List';
       iconName = 'list';
+    } else if (route.name === 'recommendations') {
+      label = 'Hemat';
+      iconName = 'shopping-cart';
     } else if (route.name === 'expenses') {
       label = 'Keuangan';
       iconName = 'credit-card';
-    } else if (route.name === 'budget') {
+    } else if (route.name === 'profile') {
       label = 'Profil';
       iconName = 'user';
+    } else if (route.name === 'market') {
+      label = 'Info';
+      iconName = 'bar-chart-2';
     }
 
     const onPress = () => {
@@ -83,7 +89,7 @@ export function CustomTabBar({ state, descriptors, navigation }: CustomTabBarPro
         },
       ]}
     >
-      {/* Left 2 Tabs: Dashboard, List */}
+      {/* Tab sisi kiri: Dashboard, List, dan rekomendasi hemat */}
       <View style={styles.tabGroup}>
         {leftRoutes.map((route) => renderTabButton(route))}
       </View>
@@ -101,7 +107,7 @@ export function CustomTabBar({ state, descriptors, navigation }: CustomTabBarPro
         </TouchableOpacity>
       </View>
 
-      {/* Right 2 Tabs: Keuangan, Profil */}
+      {/* Tab sisi kanan: Keuangan, Info, dan Profil */}
       <View style={styles.tabGroup}>
         {rightRoutes.map((route) => renderTabButton(route))}
       </View>
@@ -136,14 +142,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabButton: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 4,
-    minWidth: 54,
+    minWidth: 0,
     gap: 4,
   },
   tabLabel: {
-    fontSize: 10,
+    fontSize: 9,
     marginTop: 1,
   },
   centerContainer: {
