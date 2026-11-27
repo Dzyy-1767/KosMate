@@ -19,7 +19,7 @@ import { useKosMate } from '@/context/KosMateContext';
 export default function RegisterScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { updateProfile, showToast, login } = useKosMate();
+  const { showToast, register } = useKosMate();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -52,12 +52,17 @@ export default function RegisterScreen() {
     }
 
     setErrorMessage(null);
-    await updateProfile({
-      name: name.trim(),
-      email: email.trim(),
-    });
+    const { error, confirmationRequired } = await register(name.trim(), email.trim(), password);
+    if (error) {
+      setErrorMessage(error);
+      return;
+    }
+    if (confirmationRequired) {
+      showToast('Pendaftaran berhasil. Cek email untuk konfirmasi akun.');
+      router.replace('/login');
+      return;
+    }
     showToast(`Akun berhasil dibuat. Selamat datang, ${name.trim()}!`);
-    await login();
     router.replace('/(tabs)');
   };
 

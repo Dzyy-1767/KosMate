@@ -10,7 +10,7 @@ import { useKosMate } from '../context/KosMateContext';
 type TabsProps = React.ComponentProps<typeof Tabs>;
 export type CustomTabBarProps = Parameters<NonNullable<TabsProps['tabBar']>>[0];
 
-export function CustomTabBar({ state, descriptors, navigation }: CustomTabBarProps) {
+export function CustomTabBar({ state, descriptors, emitter, navigateToTab }: CustomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { openQuickSheet } = useKosMate();
 
@@ -46,14 +46,14 @@ export function CustomTabBar({ state, descriptors, navigation }: CustomTabBarPro
     }
 
     const onPress = () => {
-      const event = navigation.emit({
+      const event = emitter.emit({
         type: 'tabPress',
         target: route.key,
         canPreventDefault: true,
       });
 
       if (!isFocused && !event.defaultPrevented) {
-        navigation.navigate(route.name);
+        navigateToTab(route.key);
       }
     };
 

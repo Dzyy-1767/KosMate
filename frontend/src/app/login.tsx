@@ -41,8 +41,12 @@ export default function LoginScreen() {
     }
 
     setErrorMessage(null);
+    const { error } = await login(email.trim(), password);
+    if (error) {
+      setErrorMessage(error);
+      return;
+    }
     showToast(`Selamat datang kembali, ${profile.name || 'Teman Kos'}!`);
-    await login();
     router.replace('/(tabs)');
   };
 
