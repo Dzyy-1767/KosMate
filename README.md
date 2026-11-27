@@ -51,7 +51,7 @@ Aplikasi ini dibangun khusus dengan paradigma **mobile-first** karena kebutuhan 
 
 | Komponen | Teknologi | Keterangan |
 |---|---|---|
-| **Framework** | [React Native](https://reactnative.dev/) (v0.86) + [Expo](https://expo.dev/) (SDK 57) | Mobile application framework untuk Android & iOS |
+| **Framework** | [React Native](https://reactnative.dev/) (v0.88) + [Expo](https://expo.dev/) (SDK 58) | Mobile application framework untuk Android & iOS |
 | **Language** | [TypeScript](https://www.typescriptlang.org/) | Type safety dan arsitektur kode yang terstruktur |
 | **Routing & Navigation** | [Expo Router](https://docs.expo.dev/router/introduction/) | File-based native routing untuk mobile (`src/app/`) |
 | **Local Storage** | `@react-native-async-storage/async-storage` | Penyimpanan lokal persisten di perangkat mobile |

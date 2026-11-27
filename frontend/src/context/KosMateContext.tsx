@@ -1,8 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { AppState } from 'react-native';
 
 import type { Transaction } from '../types/expense';
 import type { ShoppingItem } from '../types/need';
+import { supabase } from '../lib/supabase';
 
 // ─── Storage Keys ─────────────────────────────────────────────────────────────
 const STORAGE_KEYS = {
@@ -10,7 +13,6 @@ const STORAGE_KEYS = {
   NEEDS: '@kosmate:shopping_items',
   BUDGET: '@kosmate:monthly_budget',
   PROFILE: '@kosmate:user_profile',
-  AUTH: '@kosmate:is_logged_in',
 };
 
 // ─── Initial Seed Data (from Design) ──────────────────────────────────────────
@@ -48,7 +50,13 @@ const DEFAULT_BUDGET = 4000000;
 type KosMateContextType = {
   // Auth
   isLoggedIn: boolean | null; // null = still loading from storage
-  login: () => Promise<void>;
+  getAccessToken: () => Promise<string | null>;
+  login: (email: string, password: string) => Promise<{ error: string | null }>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+  ) => Promise<{ error: string | null; confirmationRequired: boolean }>;
   logout: () => Promise<void>;
 
   // Transactions
@@ -95,10 +103,6 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadData() {
       try {
-        // ── Auth state ────────────────────────────────────────────
-        const storedAuth = await AsyncStorage.getItem(STORAGE_KEYS.AUTH);
-        setIsLoggedIn(storedAuth === 'true');
-
         const storedTransactions = await AsyncStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
         if (storedTransactions) {
           setTransactions(JSON.parse(storedTransactions));
@@ -138,6 +142,46 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
       }
     }
     loadData();
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) {
+        setIsLoggedIn(Boolean(data.session));
+      }
+    });
+
+    const { data } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        if (!mounted) return;
+        setIsLoggedIn(Boolean(session));
+
+        if (session?.user) {
+          const metadata = session.user.user_metadata;
+          setProfile((current) => ({
+            ...current,
+            name: typeof metadata?.name === 'string' ? metadata.name : current.name,
+            email: session.user.email || current.email,
+          }));
+        }
+      },
+    );
+
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+
+    return () => {
+      mounted = false;
+      data.subscription.unsubscribe();
+      appStateSubscription.remove();
+    };
   }, []);
 
   const showToast = (message: string) => {
@@ -240,14 +284,40 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
     showToast('Profil berhasil disimpan');
   };
 
-  const login = async () => {
-    setIsLoggedIn(true);
-    await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'true');
+  const login = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error: error?.message || null };
+  };
+
+  const register = async (name: string, email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name },
+      },
+    });
+
+    if (!error && data.user) {
+      await updateProfile({ name, email });
+    }
+
+    return {
+      error: error?.message || null,
+      confirmationRequired: !error && !data.session,
+    };
   };
 
   const logout = async () => {
-    setIsLoggedIn(false);
-    await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'false');
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw error;
+    }
+  };
+
+  const getAccessToken = async () => {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token || null;
   };
 
   const openQuickSheet = (type: 'quick' | 'income' | 'expense' = 'quick') => {
@@ -262,7 +332,9 @@ export function KosMateProvider({ children }: { children: React.ReactNode }) {
     <KosMateContext.Provider
       value={{
         isLoggedIn,
+        getAccessToken,
         login,
+        register,
         logout,
         transactions,
         addTransaction,

@@ -28,10 +28,19 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       // Already logged in → redirect to main app
       router.replace('/(tabs)');
     }
-  }, [isLoggedIn, segments]);
+  }, [isLoggedIn, router, segments]);
 
-  // Show a loading indicator while reading auth state from storage
+  // Keep protected screens hidden while session state is loading or redirecting.
   if (isLoggedIn === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAF8F5' }}>
+        <ActivityIndicator size="large" color="#312C51" />
+      </View>
+    );
+  }
+
+  const inAuthGroup = segments[0] === 'login' || segments[0] === 'register';
+  if ((!isLoggedIn && !inAuthGroup) || (isLoggedIn && inAuthGroup)) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAF8F5' }}>
         <ActivityIndicator size="large" color="#312C51" />

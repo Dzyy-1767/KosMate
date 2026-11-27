@@ -19,5 +19,8 @@
     "monorepo"
   ],
   "author": "KosMate Team",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "expo": "^58.0.25"
+  }
 }

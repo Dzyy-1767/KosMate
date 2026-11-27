@@ -29,7 +29,11 @@ export function DatePickerField({ value, onChange }: DatePickerFieldProps) {
               variant="picker"
               showVariantToggle={false}
               color={COLORS.primary}
-              onDateSelected={(selectedDate) => onChange(toLocalDateString(selectedDate))}
+              onDateSelected={(selectedDate) => {
+                if (selectedDate !== null) {
+                  onChange(toLocalDateString(selectedDate));
+                }
+              }}
             />
           </Host>
         </View>
